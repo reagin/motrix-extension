@@ -62,7 +62,7 @@ function RpcStatusCard({
   const isWarning = tone === 'warning';
 
   return (
-    <section className='mx-3 mb-3 overflow-hidden rounded-xl border bg-(--m3-surface-container) shadow-(--m3-shadow-card)'>
+    <section className='pointer-events-none mx-3 mb-3 overflow-hidden rounded-xl border bg-(--m3-surface-container) shadow-(--m3-shadow-card)'>
       <div className='flex'>
         <div className={cn('w-1 shrink-0', isWarning ? 'bg-(--m3-warning)' : 'bg-primary')} />
         <div className='grid min-w-0 flex-1 grid-cols-[2rem_1fr] items-center gap-3 p-3.5'>

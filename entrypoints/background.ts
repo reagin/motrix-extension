@@ -278,6 +278,9 @@ async function handleMessage(message: RuntimeMessage): Promise<RuntimeResponse> 
         return { ok: true };
       case 'content-protocol-click':
         return await routeUrl(message.url, message.pageUrl, 'content_protocol');
+      case 'append-diagnostic':
+        await appendDiagnostic(message.event);
+        return { ok: true };
       case 'clear-diagnostics':
         return { ok: true, snapshot: await clearDiagnostics() };
       case 'restore-defaults':

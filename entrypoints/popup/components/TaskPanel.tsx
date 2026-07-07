@@ -76,7 +76,7 @@ function TaskList({
             </div>
           )
         : (
-            <div className='flex min-h-[92px] items-center justify-center rounded-md border border-dashed bg-(--m3-surface) px-5 py-5 text-center text-sm text-muted-foreground'>
+            <div className='pointer-events-none flex min-h-[92px] items-center justify-center rounded-md border border-dashed bg-(--m3-surface) px-5 py-5 text-center text-sm text-muted-foreground'>
               {empty}
             </div>
           )}

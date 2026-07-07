@@ -1,5 +1,6 @@
-import { toast, Toaster } from 'sonner';
 import { useCallback, useEffect, useState } from 'react';
+
+import type { DiagnosticEvent } from '@/src/lib/storage';
 
 import { useI18n } from '@/src/hooks/use-i18n';
 import { useTheme } from '@/src/hooks/use-theme';
@@ -50,19 +51,32 @@ export default function App() {
     }
   }, [setSnapshot]);
 
+  const recordPopupDiagnostic = useCallback(async (
+    level: DiagnosticEvent['level'],
+    code: string,
+    message: string,
+    context?: Record<string, unknown>,
+  ) => {
+    await sendRuntimeMessage({
+      type: 'append-diagnostic',
+      event: context ? { level, code, message, context } : { level, code, message },
+    }).catch(() => undefined);
+  }, []);
+
   const runAction = useCallback(async (label: string, action: () => Promise<unknown>) => {
     setBusy(true);
     try {
       const response = await action();
       if (isRuntimeError(response)) throw new Error(response.message);
       await refreshRuntime(true);
-      toast.success(label);
+      await recordPopupDiagnostic('info', 'popup_action_completed', `Popup action completed: ${label}`, { action: label });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : String(error));
+      const message = error instanceof Error ? error.message : String(error);
+      await recordPopupDiagnostic('warn', 'popup_action_failed', `Popup action failed: ${label}`, { action: label, error: message });
     } finally {
       setBusy(false);
     }
-  }, [refreshRuntime]);
+  }, [recordPopupDiagnostic, refreshRuntime]);
 
   const openOptions = useCallback(() => {
     void browser.runtime.openOptionsPage();
@@ -81,8 +95,7 @@ export default function App() {
   }, [runAction, t]);
 
   return (
-    <div className='popup-shell w-[380px] overflow-hidden bg-(--m3-surface) text-foreground'>
-      <Toaster richColors position='top-center' />
+    <div className='popup-shell w-[380px] select-none overflow-hidden bg-(--m3-surface) text-foreground'>
       <PopupHeader
         snapshot={snapshot}
         status={status}

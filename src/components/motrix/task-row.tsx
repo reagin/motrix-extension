@@ -24,8 +24,8 @@ export function TaskRow({ task, onPause, onResume, onRemove }: TaskRowProps) {
     <div data-reveal className='rounded-lg border bg-[var(--m3-surface)] px-3 py-2 shadow-[var(--m3-shadow-card)]'>
       <div className='flex items-start justify-between gap-2'>
         <div className='min-w-0'>
-          <div className='truncate text-[13px] font-semibold leading-snug'>{getTaskName(task)}</div>
-          <div className='mt-1 flex items-center gap-2 text-xs text-muted-foreground'>
+          <div className='pointer-events-none truncate text-[13px] leading-snug font-semibold'>{getTaskName(task)}</div>
+          <div className='pointer-events-none mt-1 flex items-center gap-2 text-xs text-muted-foreground'>
             <Badge variant={isActive ? 'good' : isPaused ? 'warn' : 'quiet'} className='rounded-full px-1.5 py-0 text-[10px]'>
               {task.status}
             </Badge>
@@ -56,14 +56,14 @@ export function TaskRow({ task, onPause, onResume, onRemove }: TaskRowProps) {
       </div>
       <div className='mt-2 flex items-center gap-2'>
         <Progress value={progress} />
-        <span className='metric-font w-10 text-right text-[11px] text-muted-foreground'>
+        <span className='pointer-events-none metric-font w-10 text-right text-[11px] text-muted-foreground'>
           {progress.toFixed(0)}
           %
         </span>
       </div>
       {task.status === 'active'
         ? (
-            <div className='mt-1 flex gap-3 text-[11px] text-muted-foreground'>
+            <div className='pointer-events-none mt-1 flex gap-3 text-[11px] text-muted-foreground'>
               <span className='metric-font text-speed-download'>
                 ↓
                 {formatSpeed(task.downloadSpeed)}
@@ -75,7 +75,7 @@ export function TaskRow({ task, onPause, onResume, onRemove }: TaskRowProps) {
             </div>
           )
         : null}
-      {task.errorMessage ? <div className='mt-1 text-xs text-destructive'>{task.errorMessage}</div> : null}
+      {task.errorMessage ? <div className='pointer-events-none mt-1 text-xs text-destructive'>{task.errorMessage}</div> : null}
     </div>
   );
 }

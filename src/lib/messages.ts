@@ -38,6 +38,7 @@ export type RuntimeMessage
     | { type: 'resume-all' }
     | { type: 'wake-motrix' }
     | { type: 'content-protocol-click'; url: string; pageUrl: string }
+    | { type: 'append-diagnostic'; event: Omit<DiagnosticEvent, 'id' | 'timestamp'> }
     | { type: 'clear-diagnostics' }
     | { type: 'restore-defaults' }
     | { type: 'replace-snapshot'; snapshot: StorageSnapshot };

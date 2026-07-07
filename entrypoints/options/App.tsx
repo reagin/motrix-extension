@@ -48,6 +48,9 @@ const sections: Array<{ id: SectionId; icon: IconComponent; key: string }> = [
   { id: 'language', icon: Languages, key: 'options.language' },
   { id: 'maintenance', icon: Wrench, key: 'options.maintenance' },
 ];
+const CHROME_MV3_DOCS_URL = 'https://developer.chrome.com/docs/extensions/develop/migrate/what-is-mv3';
+const ARIA2_RPC_DOCS_URL = 'https://aria2.github.io/manual/en/html/aria2c.html';
+const badgeLinkClassName = 'rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 
 export default function App() {
   const [snapshot, setSnapshot] = useState<StorageSnapshot>(DEFAULT_STORAGE);
@@ -173,8 +176,22 @@ export default function App() {
             </div>
           </div>
           <div className='flex items-center gap-2'>
-            <Badge variant='secondary'>Chrome MV3</Badge>
-            <Badge variant='outline'>aria2 RPC</Badge>
+            <a
+              href={CHROME_MV3_DOCS_URL}
+              target='_blank'
+              rel='noreferrer'
+              className={badgeLinkClassName}
+            >
+              <Badge variant='secondary'>Chrome MV3</Badge>
+            </a>
+            <a
+              href={ARIA2_RPC_DOCS_URL}
+              target='_blank'
+              rel='noreferrer'
+              className={badgeLinkClassName}
+            >
+              <Badge variant='outline'>aria2 RPC</Badge>
+            </a>
           </div>
         </div>
       </header>
@@ -197,14 +214,7 @@ export default function App() {
                           onClick={() => setActive(section.id)}
                           className='group mx-auto min-h-12 w-44 justify-start gap-3 rounded-2xl border border-transparent px-3.5 py-(--options-nav-item-y) text-[15px] font-semibold data-[active=true]:border-primary/35 data-[active=true]:shadow-(--m3-shadow-elevated) max-[640px]:min-w-36 max-[640px]:px-3 max-[640px]:py-2 max-[640px]:text-sm'
                         >
-                          <span
-                            className={cn(
-                              'flex size-9 shrink-0 items-center justify-center rounded-xl transition-colors max-[640px]:size-8',
-                              isActive
-                                ? 'bg-[color-mix(in_srgb,var(--m3-on-primary-container)_12%,transparent)]'
-                                : 'bg-(--m3-surface-container-high) text-muted-foreground group-hover:text-foreground',
-                            )}
-                          >
+                          <span className='flex size-9 shrink-0 items-center justify-center rounded-xl max-[640px]:size-8'>
                             <Icon className='size-5 max-[640px]:size-4' />
                           </span>
                           <span className='min-w-0 truncate'>{t(section.key)}</span>

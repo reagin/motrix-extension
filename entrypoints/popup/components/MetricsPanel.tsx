@@ -23,7 +23,7 @@ export function MetricsPanel({ runtime, captureEnabled, t }: MetricsPanelProps) 
   const isIdle = (Number(runtime.stat?.numActive) || 0) === 0;
 
   return (
-    <section data-reveal className={cn('px-4 transition-opacity duration-300', isIdle && 'opacity-75')}>
+    <section data-reveal className={cn('pointer-events-none px-4 transition-opacity duration-300', isIdle && 'opacity-75')}>
       <div className='flex items-center justify-center py-[18px] pb-3.5'>
         <div className='flex min-w-0 flex-1 items-center justify-center gap-1.5 text-primary'>
           <ArrowDown className='size-4 shrink-0' />
@@ -58,7 +58,7 @@ function StatCount({
   className?: string;
 }) {
   return (
-    <div className={cn('flex items-center gap-1.5 text-xs', className)}>
+    <div className={cn('pointer-events-none flex items-center gap-1.5 text-xs', className)}>
       <Icon className='size-3.5' />
       <span className='font-medium'>{label}</span>
       <span className='metric-font min-w-4 text-center text-sm font-bold'>{value}</span>

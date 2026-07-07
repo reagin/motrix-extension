@@ -34,7 +34,7 @@ export function PopupHeader({
   return (
     <header className='flex items-center justify-between gap-2 px-3 py-2.5'>
       <div className='flex min-w-0 items-center gap-2'>
-        <div className='flex size-7 shrink-0 items-center justify-center rounded-full text-primary'>
+        <div className='pointer-events-none flex size-7 shrink-0 items-center justify-center rounded-full text-primary'>
           <Activity className='size-5' />
         </div>
         <Badge
@@ -45,7 +45,7 @@ export function PopupHeader({
         </Badge>
         {version
           ? (
-              <span className='metric-font truncate text-[11px] text-muted-foreground'>
+              <span className='pointer-events-none metric-font truncate text-[11px] text-muted-foreground'>
                 v
                 {version}
               </span>
@@ -55,7 +55,7 @@ export function PopupHeader({
 
       <div className='flex shrink-0 items-center gap-1.5'>
         <div className='flex items-center gap-1.5'>
-          <span className='relative grid min-w-[66px] text-right text-[11px] font-semibold'>
+          <span className='pointer-events-none relative grid min-w-[66px] text-right text-[11px] font-semibold'>
             <span
               className={cn(
                 'col-start-1 row-start-1 text-(--m3-success) transition-all duration-300',
