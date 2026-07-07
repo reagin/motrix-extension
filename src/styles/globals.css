@@ -193,6 +193,44 @@ textarea {
   font-variant-numeric: tabular-nums;
 }
 
+.rpc-handshake-track {
+  position: relative;
+  display: inline-flex;
+  width: 62px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, transparent, color-mix(in srgb, hsl(var(--primary)) 18%, transparent), transparent),
+    color-mix(in srgb, hsl(var(--primary)) 14%, transparent);
+}
+
+.rpc-handshake-track::after {
+  position: absolute;
+  inset: 0;
+  width: 28px;
+  border-radius: inherit;
+  content: '';
+  background: hsl(var(--primary));
+  animation: rpc-handshake-scan 1.15s var(--m3-ease-emphasized-decel) infinite;
+}
+
+@keyframes rpc-handshake-scan {
+  0% {
+    transform: translateX(-30px);
+    opacity: 0.35;
+  }
+
+  45% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(66px);
+    opacity: 0.35;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -201,5 +239,9 @@ textarea {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .rpc-handshake-track::after {
+    transform: translateX(17px);
   }
 }

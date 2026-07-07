@@ -14,7 +14,8 @@ const MAX_DIAGNOSTICS = 200;
 
 export async function loadSnapshot(): Promise<StorageSnapshot> {
   const raw = await browser.storage.local.get(STORAGE_KEY);
-  return StorageSnapshotSchema.parse(raw[STORAGE_KEY] ?? DEFAULT_STORAGE);
+  const result = StorageSnapshotSchema.safeParse(raw[STORAGE_KEY] ?? DEFAULT_STORAGE);
+  return result.success ? result.data : DEFAULT_STORAGE;
 }
 
 export async function saveSnapshot(snapshot: StorageSnapshot): Promise<void> {

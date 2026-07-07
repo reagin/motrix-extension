@@ -1,21 +1,6 @@
 import { toast, Toaster } from 'sonner';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Activity,
-  Braces,
-  CheckCircle2,
-  Download,
-  FileDown,
-  FileUp,
-  Languages,
-  Paintbrush,
-  Plug,
-  RotateCcw,
-  Save,
-  Shield,
-  Trash2,
-  Wrench,
-} from 'lucide-react';
+import { Activity, Braces, CheckCircle2, Download, FileDown, FileUp, Languages, Paintbrush, Plug, RotateCcw, Save, Shield, Trash2, Wrench } from 'lucide-react';
 
 import { cn } from '@/src/lib/utils';
 import { parseRpcUrl } from '@/src/lib/rpc';
@@ -40,7 +25,12 @@ type IconComponent = React.ComponentType<{ className?: string }>;
 interface ConnectionResult { ok: boolean; message: string; latencyMs?: number }
 interface SectionProps { title: string; icon: IconComponent; children: React.ReactNode }
 interface FieldProps { hint?: string; label: string; children: React.ReactNode }
-interface SettingSwitchProps { label: string; checked: boolean; onCheckedChange: (checked: boolean) => void }
+interface SettingSwitchProps {
+  hint?: string;
+  label: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+}
 
 const sections: Array<{ id: SectionId; icon: IconComponent; key: string }> = [
   { id: 'connection', icon: Plug, key: 'options.connection' },
@@ -164,9 +154,9 @@ export default function App() {
   const allowedExtensions = useMemo(() => snapshot.settings.allowedExtensions.join('\n'), [snapshot.settings.allowedExtensions]);
 
   return (
-    <div className='flex min-h-screen flex-col bg-[var(--m3-surface)] text-foreground'>
+    <div className='flex min-h-screen flex-col bg-(--m3-surface) text-foreground'>
       <Toaster richColors position='top-center' />
-      <header className='border-b bg-[var(--m3-surface-container-low)] px-8 pb-4 pt-7'>
+      <header className='border-b bg-(--m3-surface-container-low) px-8 pt-7 pb-4'>
         <div className='flex items-center justify-between'>
           <div className='flex items-center gap-3.5'>
             <div className='flex size-10 items-center justify-center rounded-full text-primary'>
@@ -184,8 +174,8 @@ export default function App() {
         </div>
       </header>
 
-      <main className='flex flex-1 px-6 py-4 max-[640px]:flex-col max-[640px]:px-0 max-[640px]:py-0'>
-        <nav className='flex min-w-[170px] flex-1 flex-col gap-0.5 p-2 max-[640px]:w-full max-[640px]:min-w-0 max-[640px]:flex-row max-[640px]:overflow-x-auto max-[640px]:px-3'>
+      <main className='flex flex-1 px-6 py-5 max-[640px]:flex-col max-[640px]:p-0'>
+        <nav className='flex w-[220px] shrink-0 flex-col gap-1.5 p-2 pr-4 max-[640px]:w-full max-[640px]:min-w-0 max-[640px]:flex-row max-[640px]:overflow-x-auto max-[640px]:px-3'>
           {sections.map((section) => {
             const Icon = section.icon;
             return (
@@ -193,20 +183,29 @@ export default function App() {
                 key={section.id}
                 onClick={() => setActive(section.id)}
                 className={cn(
-                  'flex w-full items-center gap-2.5 rounded-[10px] px-3.5 py-2.5 text-left text-[13px] font-medium transition-colors max-[640px]:min-w-16 max-[640px]:flex-col max-[640px]:gap-1 max-[640px]:text-center max-[640px]:text-[11px]',
+                  'group flex w-full items-center gap-3 rounded-2xl border border-transparent px-4 py-3.5 text-left text-[15px] font-semibold transition-[background-color,border-color,box-shadow,color,transform] max-[640px]:min-w-20 max-[640px]:flex-col max-[640px]:gap-1 max-[640px]:px-3 max-[640px]:py-2 max-[640px]:text-center max-[640px]:text-xs',
                   active === section.id
-                    ? 'bg-[var(--m3-primary-container)] text-[var(--m3-on-primary-container)] hover:brightness-95'
-                    : 'text-muted-foreground hover:bg-[color-mix(in_srgb,var(--m3-on-surface)_6%,transparent)] hover:text-foreground',
+                    ? 'border-primary/35 bg-(--m3-primary-container) text-(--m3-on-primary-container) shadow-(--m3-shadow-elevated)'
+                    : 'text-muted-foreground hover:border-(--m3-outline-variant) hover:bg-[color-mix(in_srgb,var(--m3-on-surface)_6%,transparent)] hover:text-foreground',
                 )}
               >
-                <Icon className='size-4' />
+                <span
+                  className={cn(
+                    'flex size-9 shrink-0 items-center justify-center rounded-xl transition-colors max-[640px]:size-8',
+                    active === section.id
+                      ? 'bg-[color-mix(in_srgb,var(--m3-on-primary-container)_12%,transparent)]'
+                      : 'bg-(--m3-surface-container-high) text-muted-foreground group-hover:text-foreground',
+                  )}
+                >
+                  <Icon className='size-5 max-[640px]:size-4' />
+                </span>
                 {t(section.key)}
               </button>
             );
           })}
         </nav>
 
-        <div className='min-w-0 flex-[3] border-l border-border px-4 pb-8 pt-2 max-[640px]:border-l-0 max-[640px]:px-4 max-[640px]:pt-4'>
+        <div className='min-w-0 flex-1 border-l border-border px-6 pt-1 pb-8 max-[640px]:border-l-0 max-[640px]:px-4 max-[640px]:pt-4'>
           {active === 'connection'
             ? (
                 <Section title={t('options.connection')} icon={Plug}>
@@ -247,7 +246,7 @@ export default function App() {
                       {t('options.parseRpcUrl')}
                     </Button>
                   </div>
-                  <div className='flex items-center justify-between rounded-xl border bg-[var(--m3-surface)] p-3'>
+                  <div className='flex items-center justify-between rounded-xl border bg-(--m3-surface) p-3'>
                     <div className='flex items-center gap-2'>
                       {connectionResult ? <StatusDot ok={connectionResult.ok} /> : <Activity className='size-4 text-muted-foreground' />}
                       <span className='text-sm'>
@@ -271,33 +270,37 @@ export default function App() {
                 <Section title={t('options.download')} icon={Download}>
                   <SettingSwitch
                     label={t('popup.interception')}
+                    hint={snapshot.settings.enabled ? t('popup.captureOn') : t('popup.captureOff')}
                     checked={snapshot.settings.enabled}
                     onCheckedChange={(enabled) => updateSettings({ enabled })}
                   />
-                  <div className='grid grid-cols-2 gap-3'>
-                    <SettingSwitch
-                      label='HTTP / HTTPS'
-                      checked={snapshot.settings.interceptHttp}
-                      onCheckedChange={(interceptHttp) => updateSettings({ interceptHttp })}
-                    />
-                    <SettingSwitch
-                      label='magnet'
-                      checked={snapshot.settings.interceptMagnet}
-                      onCheckedChange={(interceptMagnet) => updateSettings({ interceptMagnet })}
-                    />
-                    <SettingSwitch
-                      label='ed2k'
-                      checked={snapshot.settings.interceptEd2k}
-                      onCheckedChange={(interceptEd2k) => updateSettings({ interceptEd2k })}
-                    />
-                    <SettingSwitch
-                      label='thunder'
-                      checked={snapshot.settings.interceptThunder}
-                      onCheckedChange={(interceptThunder) => updateSettings({ interceptThunder })}
-                    />
+                  <div className='space-y-2'>
+                    <div className='text-xs font-semibold tracking-[0.06em] text-muted-foreground uppercase'>{t('options.protocols')}</div>
+                    <div className='grid grid-cols-4 gap-2 max-[760px]:grid-cols-2'>
+                      <ProtocolToggle
+                        label='HTTP'
+                        checked={snapshot.settings.interceptHttp}
+                        onCheckedChange={(interceptHttp) => updateSettings({ interceptHttp })}
+                      />
+                      <ProtocolToggle
+                        label='magnet'
+                        checked={snapshot.settings.interceptMagnet}
+                        onCheckedChange={(interceptMagnet) => updateSettings({ interceptMagnet })}
+                      />
+                      <ProtocolToggle
+                        label='ed2k'
+                        checked={snapshot.settings.interceptEd2k}
+                        onCheckedChange={(interceptEd2k) => updateSettings({ interceptEd2k })}
+                      />
+                      <ProtocolToggle
+                        label='thunder'
+                        checked={snapshot.settings.interceptThunder}
+                        onCheckedChange={(interceptThunder) => updateSettings({ interceptThunder })}
+                      />
+                    </div>
                   </div>
                   <Separator />
-                  <div className='grid grid-cols-2 gap-3'>
+                  <div className='space-y-2'>
                     <SettingSwitch
                       label={t('options.forwardCookies')}
                       checked={snapshot.settings.forwardCookies}
@@ -329,20 +332,6 @@ export default function App() {
                       />
                     </Field>
                   </div>
-                  <div className='grid grid-cols-2 gap-4'>
-                    <Field label='Allowed extensions'>
-                      <Textarea
-                        value={allowedExtensions}
-                        onChange={(event) => updateSettings({ allowedExtensions: splitLines(event.target.value) })}
-                      />
-                    </Field>
-                    <Field label='Blocked extensions'>
-                      <Textarea
-                        value={blockedExtensions}
-                        onChange={(event) => updateSettings({ blockedExtensions: splitLines(event.target.value) })}
-                      />
-                    </Field>
-                  </div>
                   <Button className='self-start' onClick={() => void persistSettings()}>
                     <Save />
                     {t('common.save')}
@@ -371,7 +360,7 @@ export default function App() {
                   </div>
                   <div className='space-y-2'>
                     {snapshot.siteRules.map((rule) => (
-                      <div key={rule.id} className='flex items-center gap-3 rounded-xl border bg-[var(--m3-surface)] p-3'>
+                      <div key={rule.id} className='flex items-center gap-3 rounded-xl border bg-(--m3-surface) p-3'>
                         <Switch
                           checked={rule.enabled}
                           onCheckedChange={(enabled) => {
@@ -386,6 +375,27 @@ export default function App() {
                       </div>
                     ))}
                   </div>
+                  <Separator />
+                  <div className='grid grid-cols-2 gap-4 max-[760px]:grid-cols-1'>
+                    <Field label='Allowed extensions'>
+                      <Textarea
+                        className='min-h-24'
+                        value={allowedExtensions}
+                        onChange={(event) => updateSettings({ allowedExtensions: splitLines(event.target.value) })}
+                      />
+                    </Field>
+                    <Field label='Blocked extensions'>
+                      <Textarea
+                        className='min-h-24'
+                        value={blockedExtensions}
+                        onChange={(event) => updateSettings({ blockedExtensions: splitLines(event.target.value) })}
+                      />
+                    </Field>
+                  </div>
+                  <Button className='self-start' onClick={() => void persistSettings()}>
+                    <Save />
+                    {t('common.save')}
+                  </Button>
                 </Section>
               )
             : null}
@@ -434,8 +444,8 @@ export default function App() {
                           className={cn(
                             'flex w-full items-center gap-3 rounded-[10px] border px-4 py-3 text-left transition-[background-color,border-color,box-shadow,color]',
                             activeLocale
-                              ? 'border-primary bg-[var(--m3-primary-container)] text-[var(--m3-on-primary-container)] shadow-[0_0_0_1px_hsl(var(--primary))]'
-                              : 'border-[var(--m3-outline-variant)] bg-transparent hover:bg-[var(--m3-surface-container-high)]',
+                              ? 'border-primary bg-(--m3-primary-container) text-(--m3-on-primary-container) shadow-[0_0_0_1px_hsl(var(--primary))]'
+                              : 'border-(--m3-outline-variant) bg-transparent hover:bg-(--m3-surface-container-high)',
                           )}
                         >
                           <div className='flex size-9 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,hsl(var(--primary))_12%,transparent)] text-primary'>
@@ -476,10 +486,10 @@ export default function App() {
                     </Button>
                     <input ref={fileInputRef} type='file' accept='application/json' className='hidden' onChange={(event) => void importSettings(event.target.files?.[0])} />
                   </div>
-                  <ScrollArea className='h-[420px] rounded-xl border bg-[var(--m3-surface)]'>
+                  <ScrollArea className='h-[420px] rounded-xl border bg-(--m3-surface)'>
                     <div className='space-y-2 p-3'>
                       {snapshot.diagnostics.map((event) => (
-                        <div key={event.id} className='rounded-lg border bg-[var(--m3-surface-container-low)] p-3'>
+                        <div key={event.id} className='rounded-lg border bg-(--m3-surface-container-low) p-3'>
                           <div className='flex items-center justify-between gap-2'>
                             <div className='flex items-center gap-2'>
                               <Badge variant={event.level === 'error' ? 'destructive' : event.level === 'warn' ? 'warn' : 'quiet'}>{event.level}</Badge>
@@ -514,15 +524,17 @@ export default function App() {
 
 function Section({ title, icon: Icon, children }: SectionProps) {
   return (
-    <section className='space-y-3'>
-      <h2 className='text-[13px] font-semibold uppercase tracking-[0.05em] text-muted-foreground'>{title}</h2>
-      <div className='space-y-5 rounded-2xl border bg-[var(--m3-surface-container)] p-5 shadow-[var(--m3-shadow-card)]'>
-        <div className='flex items-center gap-2'>
-          <div className='flex size-9 items-center justify-center rounded-xl bg-[color-mix(in_srgb,hsl(var(--primary))_12%,transparent)] text-primary'>
-            <Icon className='size-4' />
-          </div>
-          <h3 className='text-base font-semibold'>{title}</h3>
+    <section className='mx-auto max-w-4xl space-y-4'>
+      <div className='flex items-center gap-3 px-1'>
+        <div className='flex size-11 items-center justify-center rounded-2xl bg-[color-mix(in_srgb,hsl(var(--primary))_12%,transparent)] text-primary'>
+          <Icon className='size-5' />
         </div>
+        <div>
+          <h2 className='text-xl font-bold tracking-[-0.01em]'>{title}</h2>
+          <div className='mt-1 h-1 w-10 rounded-full bg-primary/70' />
+        </div>
+      </div>
+      <div className='space-y-3 rounded-3xl border bg-(--m3-surface-container) p-3 shadow-(--m3-shadow-card)'>
         {children}
       </div>
     </section>
@@ -531,20 +543,43 @@ function Section({ title, icon: Icon, children }: SectionProps) {
 
 function Field({ label, hint, children }: FieldProps) {
   return (
-    <div className='space-y-2'>
-      <Label>{label}</Label>
+    <div className='rounded-2xl border bg-(--m3-surface) p-3.5'>
+      <div className='mb-2 flex items-baseline justify-between gap-3'>
+        <Label className='text-[13px]'>{label}</Label>
+        {hint ? <p className='max-w-[60%] text-right text-xs/relaxed text-muted-foreground'>{hint}</p> : null}
+      </div>
       {children}
-      {hint ? <p className='text-xs leading-relaxed text-muted-foreground'>{hint}</p> : null}
     </div>
   );
 }
 
-function SettingSwitch({ label, checked, onCheckedChange }: SettingSwitchProps) {
+function SettingSwitch({ label, hint, checked, onCheckedChange }: SettingSwitchProps) {
   return (
-    <div className='flex items-center justify-between gap-3 rounded-xl border bg-[var(--m3-surface)] p-3'>
-      <span className='text-sm font-medium'>{label}</span>
+    <div className='flex items-center justify-between gap-5 rounded-2xl border bg-(--m3-surface) px-4 py-3.5'>
+      <div className='min-w-0'>
+        <div className='text-sm font-semibold'>{label}</div>
+        {hint ? <div className='mt-0.5 text-xs text-muted-foreground'>{hint}</div> : null}
+      </div>
       <Switch checked={checked} onCheckedChange={onCheckedChange} />
     </div>
+  );
+}
+
+function ProtocolToggle({ label, checked, onCheckedChange }: SettingSwitchProps) {
+  return (
+    <button
+      type='button'
+      onClick={() => onCheckedChange(!checked)}
+      className={cn(
+        'flex items-center justify-between rounded-2xl border px-3.5 py-3 text-left text-sm font-semibold',
+        checked
+          ? 'border-primary/40 bg-(--m3-primary-container) text-(--m3-on-primary-container)'
+          : 'border-(--m3-outline-variant) bg-(--m3-surface) text-muted-foreground hover:text-foreground',
+      )}
+    >
+      <span>{label}</span>
+      <span className={cn('size-2.5 rounded-full', checked ? 'bg-primary' : 'bg-(--m3-outline-variant)')} />
+    </button>
   );
 }
 

@@ -42,6 +42,12 @@ export const enUS = {
     downloadSpeed: 'Download',
     uploadSpeed: 'Upload',
     emptyHint: 'New routed downloads will appear here after Motrix accepts them.',
+    connectingTitle: 'Connecting to Motrix',
+    connectingHint: 'Testing the aria2 RPC endpoint on port {port}.',
+    connectingStatus: 'RPC handshake',
+    connectingConfig: 'Loading saved connection settings',
+    connectingRpc: 'Checking the local RPC service',
+    connectingTasks: 'Preparing task summary after connection',
     connectionHint: 'Check that Motrix is open and RPC is listening on port {port}.',
   },
   options: {

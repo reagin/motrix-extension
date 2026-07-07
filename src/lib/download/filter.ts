@@ -43,10 +43,12 @@ export function shouldInterceptDownload(
   }
 
   const extension = getExtension(candidate.filename || url);
-  if (settings.allowedExtensions.length > 0 && extension && !settings.allowedExtensions.includes(extension)) {
+  const allowedExtensions = normalizeExtensions(settings.allowedExtensions);
+  const blockedExtensions = normalizeExtensions(settings.blockedExtensions);
+  if (allowedExtensions.length > 0 && extension && !allowedExtensions.includes(extension)) {
     return { intercept: false, reason: 'extension_not_allowed' };
   }
-  if (extension && settings.blockedExtensions.includes(extension)) {
+  if (extension && blockedExtensions.includes(extension)) {
     return { intercept: false, reason: 'extension_blocked' };
   }
 
@@ -59,6 +61,7 @@ export function shouldInterceptDownload(
 
 export function isProtocolEnabled(url: string, settings: DownloadSettings): boolean {
   const protocol = getProtocol(url);
+  if (!['http:', 'https:', 'magnet:', 'ed2k:', 'thunder:'].includes(protocol)) return false;
   if (protocol === 'magnet:') return settings.enabled && settings.interceptMagnet;
   if (protocol === 'ed2k:') return settings.enabled && settings.interceptEd2k;
   if (protocol === 'thunder:') return settings.enabled && settings.interceptThunder;
@@ -77,6 +80,12 @@ function getExtension(value: string): string {
   const clean = value.split('?')[0]?.split('#')[0] ?? value;
   const match = /\.([a-z0-9]{1,12})$/i.exec(clean);
   return match?.[1]?.toLowerCase() ?? '';
+}
+
+function normalizeExtensions(extensions: string[]): string[] {
+  return extensions
+    .map((extension) => extension.trim().replace(/^\./, '').toLowerCase())
+    .filter(Boolean);
 }
 
 function globMatch(pattern: string, value: string): boolean {

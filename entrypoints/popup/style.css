@@ -1,0 +1,23 @@
+html,
+body,
+#root {
+  width: 380px;
+  height: auto;
+  min-height: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  display: block;
+  background: var(--m3-surface);
+}
+
+#root {
+  display: block;
+}
+
+.popup-shell {
+  display: flow-root;
+  min-height: 0;
+}

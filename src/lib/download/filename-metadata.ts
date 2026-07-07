@@ -38,7 +38,7 @@ export class FilenameMetadataStore {
 
 export function parseContentDispositionFilename(value: string): string | undefined {
   const encoded = /filename\*\s*=\s*UTF-8''([^;]+)/i.exec(value)?.[1];
-  if (encoded) return sanitizeFilename(decodeURIComponent(encoded.replaceAll('"', '').trim()));
+  if (encoded) return sanitizeFilename(safeDecodeURIComponent(encoded.replaceAll('"', '').trim()));
   const plain = /filename\s*=\s*"?([^";]+)"?/i.exec(value)?.[1];
   return plain ? sanitizeFilename(plain.trim()) : undefined;
 }
@@ -51,8 +51,16 @@ export function filenameFromUrl(url: string): string | undefined {
   try {
     const parsed = new URL(url);
     const raw = parsed.pathname.split('/').filter(Boolean).pop();
-    return raw ? sanitizeFilename(decodeURIComponent(raw)) : undefined;
+    return raw ? sanitizeFilename(safeDecodeURIComponent(raw)) : undefined;
   } catch {
     return undefined;
+  }
+}
+
+function safeDecodeURIComponent(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
   }
 }

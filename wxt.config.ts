@@ -9,7 +9,7 @@ export default defineConfig({
   }),
   manifest: {
     name: 'Motrix Extension',
-    description: 'Send browser downloads to Motrix and manage aria2 tasks from Chrome.',
+    description: 'Send browser downloads to Motrix and manage aria2 tasks from Chrome',
     version: '1.0.0',
     minimum_chrome_version: '116',
     default_locale: 'en_US',

@@ -9,7 +9,6 @@
     "zip": "wxt zip",
     "build": "wxt build",
     "clean": "wxt clean",
-    "compile": "tsc --noEmit",
     "postinstall": "wxt prepare",
     "lint:eslint": "eslint . --fix --quiet --cache --cache-file=./node_modules/.cache/eslint/.eslint-cache"
   },

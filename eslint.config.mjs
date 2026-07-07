@@ -37,7 +37,7 @@ export default antfu(
     rules: {
       'better-tailwindcss/enforce-consistent-line-wrapping': ['error', { printWidth: 0, preferSingleLine: true }],
       'better-tailwindcss/enforce-consistent-important-position': ['error', { position: 'recommended' }],
-      'better-tailwindcss/no-unknown-classes': ['error', { ignore: ['^metric-font$'] }],
+      'better-tailwindcss/no-unknown-classes': ['error', { ignore: ['^metric-font$', '^rpc-handshake-track$', '^popup-shell$'] }],
       'perfectionist/sort-enums': ['error', { type: 'line-length', order: 'asc', locales: 'zh-CN', fallbackSort: { type: 'alphabetical', order: 'asc' } }],
       'perfectionist/sort-imports': ['error', { type: 'line-length', order: 'asc', locales: 'zh-CN', fallbackSort: { type: 'alphabetical', order: 'asc' } }],
       'perfectionist/sort-exports': ['error', { type: 'line-length', order: 'desc', locales: 'zh-CN', fallbackSort: { type: 'alphabetical', order: 'desc' } }],
