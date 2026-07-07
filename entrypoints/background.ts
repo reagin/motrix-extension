@@ -47,10 +47,10 @@ export default defineBackground(() => {
     void ensureContextMenu();
   });
 
-  browser.contextMenus.onClicked.addListener((info, tab) => {
+  browser.contextMenus.onClicked.addListener((info) => {
     const url = info.linkUrl || info.srcUrl || info.pageUrl || info.selectionText;
     if (!url) return;
-    void routeUrl(url, tab?.url || info.pageUrl || '', 'context_menu');
+    void routeUrl(url, info.pageUrl || '', 'context_menu');
   });
 
   browser.downloads.onCreated.addListener((item) => {
@@ -68,7 +68,7 @@ export default defineBackground(() => {
       });
       return undefined;
     },
-    { urls: ['<all_urls>'] },
+    { urls: ['http://*/*', 'https://*/*'] },
     ['requestHeaders', 'extraHeaders'],
   );
 
@@ -83,7 +83,7 @@ export default defineBackground(() => {
       });
       return undefined;
     },
-    { urls: ['<all_urls>'] },
+    { urls: ['http://*/*', 'https://*/*'] },
     ['responseHeaders', 'extraHeaders'],
   );
 

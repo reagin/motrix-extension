@@ -3,6 +3,7 @@
   "description": "A modern Chrome MV3 extension for Motrix download control.",
   "private": true,
   "version": "0.0.0",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "wxt",
