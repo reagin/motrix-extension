@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Slot } from '@radix-ui/react-slot';
 
-import { cn } from '@/src/lib/utils';
+import { cn } from '@/library/utils';
 
 type SidebarContextValue = {
   open: boolean;

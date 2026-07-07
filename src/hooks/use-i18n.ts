@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 
-import { type Locale, translate } from '@/src/lib/i18n/dictionaries';
+import { type Locale, translate } from '@/library/i18n/dictionaries';
 
 export function useI18n(locale: Locale) {
   const t = useCallback(

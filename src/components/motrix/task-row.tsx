@@ -1,11 +1,11 @@
 import { Pause, Play, Trash2 } from 'lucide-react';
 
-import type { Aria2Task } from '@/src/lib/rpc';
+import type { Aria2Task } from '@/library/rpc';
 
-import { Badge } from '@/src/components/ui/badge';
-import { Button } from '@/src/components/ui/button';
-import { Progress } from '@/src/components/ui/progress';
-import { formatBytes, formatSpeed, percent } from '@/src/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { formatBytes, formatSpeed, percent } from '@/library/utils';
 
 import { getTaskName } from './task-name';
 

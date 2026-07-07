@@ -1,4 +1,4 @@
-import type { Aria2Task } from '@/src/lib/rpc';
+import type { Aria2Task } from '@/library/rpc';
 
 export function getTaskName(task: Aria2Task): string {
   const btName = task.bittorrent?.info?.name;

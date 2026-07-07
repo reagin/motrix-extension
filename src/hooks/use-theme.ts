@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import type { UiPrefs } from '@/src/lib/storage';
+import type { UiPrefs } from '@/library/storage';
 
 export function useTheme(ui: UiPrefs | undefined) {
   useEffect(() => {

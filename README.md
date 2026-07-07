@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./public/icon/128.png" alt="Motrix Extension" width="96" height="96">
+  <img src="./src/public/icon/128.png" alt="Motrix Extension" width="96" height="96">
 </p>
 
 # Motrix Extension
@@ -101,20 +101,34 @@ pnpm zip
 
 ```text
 motrix-extension/
-├── entrypoints/                # Extension entry points
-│   ├── background.ts           # Service worker: interception, context menu, RPC routing
-│   ├── content.ts              # Content script: protocol-link click interception
-│   ├── popup/                  # Browser action popup: status, speeds, task dashboard
-│   └── options/                # Full-page settings: connection, behavior, rules, UI
-├── locales/                    # WXT i18n resources
-├── public/icon/                # Extension icons
-└── src/
-    ├── components/             # React UI components
-    ├── hooks/                  # Shared hooks
-    ├── lib/download/           # Filtering, duplicate guard, metadata, request context
-    ├── lib/protocol/           # motrix:// protocol launcher
-    ├── lib/rpc/                # aria2 JSON-RPC client and error types
-    └── lib/storage/            # Zod schemas and browser storage helpers
+├── src/
+│   ├── components/
+│   │   ├── motrix/             # Motrix task/status presentation components
+│   │   └── ui/                 # Reusable Radix/Tailwind UI primitives
+│   ├── entrypoints/            # WXT extension entry points
+│   │   ├── background.ts       # Service worker bootstrap
+│   │   ├── content.ts          # Protocol-link click interception
+│   │   ├── options/            # Full-page settings app
+│   │   └── popup/              # Browser action popup app
+│   ├── features/
+│   │   ├── background/         # Downloads, context menu, messaging, runtime state
+│   │   └── options/            # Options page components, hooks, sections, constants
+│   ├── hooks/                  # Shared React hooks
+│   ├── library/
+│   │   ├── download/           # Filtering, duplicate guard, metadata, request context
+│   │   ├── i18n/               # Runtime dictionaries and locale helpers
+│   │   ├── protocol/           # motrix:// protocol launcher
+│   │   ├── rpc/                # aria2 JSON-RPC client and error types
+│   │   ├── storage/            # Zod schemas and browser storage helpers
+│   │   ├── messages.ts         # Runtime message and state contracts
+│   │   ├── runtime.ts          # Browser runtime messaging helper
+│   │   └── utils.ts            # Shared formatting and class helpers
+│   ├── locales/                # WXT i18n resources
+│   ├── public/icon/            # Extension icons
+│   └── styles/                 # Global styles
+├── wxt.config.ts               # WXT and manifest configuration
+├── eslint.config.mjs           # ESLint configuration
+└── package.json                # Scripts and dependencies
 ```
 
 ### Scripts

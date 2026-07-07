@@ -39,13 +39,15 @@ const dateVersions = getDateVersions();
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
+  srcDir: 'src',
+  publicDir: 'src/public',
   modules: ['@wxt-dev/module-react', '@wxt-dev/i18n/module'],
-  zip: {
-    artifactTemplate: '{{name}}-{{version}}-{{browser}}-mv3.zip',
-  },
   vite: () => ({
     plugins: [tailwindcss()],
   }),
+  zip: {
+    artifactTemplate: '{{name}}-{{version}}-{{browser}}-mv3.zip',
+  },
   manifest: {
     name: 'Motrix Extension',
     description: 'Send browser downloads to Motrix and manage aria2 tasks from Chrome',

@@ -1,4 +1,4 @@
-import { cn } from '@/src/lib/utils';
+import { cn } from '@/library/utils';
 
 export function StatusDot({ ok, checking = false }: { ok: boolean; checking?: boolean }) {
   return (
