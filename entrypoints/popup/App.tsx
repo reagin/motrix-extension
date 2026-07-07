@@ -28,9 +28,10 @@ export default function App() {
   const { t } = useI18n(snapshot.ui.locale);
   useTheme(snapshot.ui);
 
+  const shouldRevealConnectedContent = snapshot.ui.motion && status === 'connected';
   const revealRef = useAnimeReveal<HTMLDivElement>(
-    snapshot.ui.motion && status === 'connected',
-    runtime?.connection.checkedAt ?? status,
+    shouldRevealConnectedContent,
+    status,
   );
 
   const pollRuntime = useCallback(() => {

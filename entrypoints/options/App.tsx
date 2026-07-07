@@ -515,9 +515,6 @@ export default function App() {
             : null}
         </div>
       </main>
-      <footer className='border-t py-4 text-center text-xs text-muted-foreground opacity-60'>
-        Motrix Extension v0.1.0
-      </footer>
     </div>
   );
 }
