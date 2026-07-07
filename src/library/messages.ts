@@ -1,4 +1,4 @@
-import type { Aria2GlobalStat, Aria2Task } from '@/library/rpc';
+import type { Aria2GlobalStat, Aria2Task, Aria2TaskStatus } from '@/library/rpc';
 import type { ConnectionConfig, DiagnosticEvent, DownloadSettings, SiteRule, StorageSnapshot, UiPrefs } from '@/library/storage';
 
 export interface PopupState {
@@ -23,6 +23,8 @@ export interface RuntimeState {
   };
 }
 
+export type RuntimeTaskLane = keyof RuntimeState['tasks'];
+
 export type RuntimeMessage
   = | { type: 'popup-state' }
     | { type: 'runtime-state' }
@@ -33,9 +35,10 @@ export type RuntimeMessage
     | { type: 'update-ui'; patch: Partial<UiPrefs> }
     | { type: 'save-site-rules'; siteRules: SiteRule[] }
     | { type: 'add-url'; url: string }
-    | { type: 'task-action'; action: 'pause' | 'resume' | 'remove'; gid: string }
+    | { type: 'task-action'; action: 'pause' | 'resume' | 'remove'; gid: string; status?: Aria2TaskStatus }
     | { type: 'pause-all' }
     | { type: 'resume-all' }
+    | { type: 'clear-tasks'; lane: RuntimeTaskLane; gids: string[] }
     | { type: 'wake-motrix' }
     | { type: 'content-protocol-click'; url: string; pageUrl: string }
     | { type: 'append-diagnostic'; event: Omit<DiagnosticEvent, 'id' | 'timestamp'> }

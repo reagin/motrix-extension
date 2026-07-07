@@ -11,6 +11,7 @@ import {
 
 const STORAGE_KEY = 'motrixExtension';
 const MAX_DIAGNOSTICS = 200;
+const AUTH_CONNECTION_FIELDS = ['host', 'port', 'path', 'secret'] as const;
 
 export async function loadSnapshot(): Promise<StorageSnapshot> {
   const raw = await browser.storage.local.get(STORAGE_KEY);
@@ -35,8 +36,21 @@ export async function updateSnapshot(
 export async function updateConnection(patch: Partial<ConnectionConfig>): Promise<StorageSnapshot> {
   return updateSnapshot((current) => ({
     ...current,
-    connection: { ...current.connection, ...patch },
+    connection: {
+      ...current.connection,
+      ...patch,
+      verifiedAt: hasAuthConnectionChange(current.connection, patch)
+        ? 0
+        : (patch.verifiedAt ?? current.connection.verifiedAt),
+    },
   }));
+}
+
+function hasAuthConnectionChange(
+  current: ConnectionConfig,
+  patch: Partial<ConnectionConfig>,
+): boolean {
+  return AUTH_CONNECTION_FIELDS.some((field) => field in patch && patch[field] !== current[field]);
 }
 
 export async function updateSettings(patch: Partial<DownloadSettings>): Promise<StorageSnapshot> {

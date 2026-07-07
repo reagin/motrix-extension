@@ -2,7 +2,7 @@ import type { StorageSnapshot } from '@/library/storage';
 import type { PopupState, RuntimeState } from '@/library/messages';
 
 import { Aria2RpcClient } from '@/library/rpc';
-import { loadSnapshot } from '@/library/storage';
+import { loadSnapshot, updateConnection } from '@/library/storage';
 
 const POPUP_RPC_TIMEOUT_MS = 1200;
 
@@ -25,6 +25,9 @@ export async function buildRuntimeState(snapshot: StorageSnapshot): Promise<Runt
     tasks: { active: [], waiting: [], stopped: [] },
   };
   if (!connection.ok) return base;
+  if (!snapshot.connection.verifiedAt) {
+    await updateConnection({ verifiedAt: Date.now() });
+  }
   const [stat, active, waiting, stopped] = await Promise.all([
     client.getGlobalStat(),
     client.tellActive(),

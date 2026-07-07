@@ -7,18 +7,28 @@ import type { PopupTranslator, TaskLane } from '../types';
 
 interface TaskPanelProps {
   t: PopupTranslator;
+  activeLane: TaskLane;
   runtime: RuntimeState;
   onPause: (gid: string) => void;
-  onRemove: (gid: string) => void;
   onResume: (gid: string) => void;
+  onLaneChange: (lane: TaskLane) => void;
+  onRemove: (gid: string, status: RuntimeState['tasks']['active'][number]['status']) => void;
 }
 
 const lanes: TaskLane[] = ['active', 'waiting', 'stopped'];
 
-export function TaskPanel({ runtime, onPause, onResume, onRemove, t }: TaskPanelProps) {
+export function TaskPanel({
+  activeLane,
+  runtime,
+  onLaneChange,
+  onPause,
+  onResume,
+  onRemove,
+  t,
+}: TaskPanelProps) {
   return (
     <section data-reveal className='mx-3 mt-2 rounded-xl border bg-(--m3-surface-container) p-2.5 shadow-(--m3-shadow-card)'>
-      <Tabs defaultValue='active'>
+      <Tabs value={activeLane} onValueChange={(value) => onLaneChange(value as TaskLane)}>
         <TabsList className='grid h-8 w-full grid-cols-3 bg-(--m3-surface-container-high)'>
           {lanes.map((lane) => (
             <TabsTrigger key={lane} value={lane}>
@@ -57,7 +67,7 @@ function TaskList({
   empty: string;
   onPause: (gid: string) => void;
   onResume: (gid: string) => void;
-  onRemove: (gid: string) => void;
+  onRemove: (gid: string, status: RuntimeState['tasks']['active'][number]['status']) => void;
 }) {
   return (
     <TabsContent value={value} className='mt-2'>
@@ -76,7 +86,7 @@ function TaskList({
             </div>
           )
         : (
-            <div className='pointer-events-none flex min-h-[92px] items-center justify-center rounded-md border border-dashed bg-(--m3-surface) px-5 py-5 text-center text-sm text-muted-foreground'>
+            <div className='pointer-events-none flex min-h-[92px] items-center justify-center rounded-md border border-dashed bg-(--m3-surface) p-5 text-center text-sm text-muted-foreground'>
               {empty}
             </div>
           )}

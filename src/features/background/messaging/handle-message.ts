@@ -16,7 +16,7 @@ import {
   updateUi,
 } from '@/library/storage';
 
-import { performTaskAction, withClient } from './task-actions';
+import { clearTasks, performTaskAction, withClient } from './task-actions';
 
 export async function handleMessage(message: RuntimeMessage): Promise<RuntimeResponse> {
   try {
@@ -43,13 +43,16 @@ export async function handleMessage(message: RuntimeMessage): Promise<RuntimeRes
       case 'add-url':
         return await routeUrl(message.url, '', 'manual_popup');
       case 'task-action':
-        await performTaskAction(message.action, message.gid);
+        await performTaskAction(message.action, message.gid, message.status);
         return { ok: true };
       case 'pause-all':
         await withClient((client) => client.pauseAll());
         return { ok: true };
       case 'resume-all':
         await withClient((client) => client.resumeAll());
+        return { ok: true };
+      case 'clear-tasks':
+        await clearTasks(message.lane, message.gids);
         return { ok: true };
       case 'wake-motrix':
         await wakeMotrix();

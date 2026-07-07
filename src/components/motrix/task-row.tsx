@@ -12,8 +12,8 @@ import { getTaskName } from './task-name';
 interface TaskRowProps {
   task: Aria2Task;
   onPause: (gid: string) => void;
-  onRemove: (gid: string) => void;
   onResume: (gid: string) => void;
+  onRemove: (gid: string, status: Aria2Task['status']) => void;
 }
 
 export function TaskRow({ task, onPause, onResume, onRemove }: TaskRowProps) {
@@ -21,7 +21,7 @@ export function TaskRow({ task, onPause, onResume, onRemove }: TaskRowProps) {
   const isActive = task.status === 'active';
   const isPaused = task.status === 'paused' || task.status === 'waiting';
   return (
-    <div data-reveal className='rounded-lg border bg-[var(--m3-surface)] px-3 py-2 shadow-[var(--m3-shadow-card)]'>
+    <div data-reveal className='rounded-lg border bg-(--m3-surface) px-3 py-2 shadow-(--m3-shadow-card)'>
       <div className='flex items-start justify-between gap-2'>
         <div className='min-w-0'>
           <div className='pointer-events-none truncate text-[13px] leading-snug font-semibold'>{getTaskName(task)}</div>
@@ -49,14 +49,14 @@ export function TaskRow({ task, onPause, onResume, onRemove }: TaskRowProps) {
                   <Play />
                 </Button>
               )}
-          <Button variant='quiet' size='icon' className='size-7 rounded-full' title='Remove' onClick={() => onRemove(task.gid)}>
+          <Button variant='quiet' size='icon' className='size-7 rounded-full' title='Remove' onClick={() => onRemove(task.gid, task.status)}>
             <Trash2 />
           </Button>
         </div>
       </div>
       <div className='mt-2 flex items-center gap-2'>
         <Progress value={progress} />
-        <span className='pointer-events-none metric-font w-10 text-right text-[11px] text-muted-foreground'>
+        <span className='metric-font pointer-events-none w-10 text-right text-[11px] text-muted-foreground'>
           {progress.toFixed(0)}
           %
         </span>

@@ -33,6 +33,7 @@ export const enUS = {
     captureOff: 'Paused',
     pauseAll: 'Pause all',
     resumeAll: 'Resume all',
+    clearAll: 'Clear all',
     addTask: 'Add task',
     addTaskPlaceholder: 'Paste a URL, magnet, ed2k, or thunder link',
     sent: 'Sent to Motrix',

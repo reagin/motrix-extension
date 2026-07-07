@@ -39,6 +39,7 @@ export const zhCN = {
     captureOff: '已暂停',
     pauseAll: '全部暂停',
     resumeAll: '全部继续',
+    clearAll: '全部清除',
     addTask: '添加任务',
     addTaskPlaceholder: '粘贴 URL、magnet、ed2k 或 thunder 链接',
     sent: '已发送到 Motrix',

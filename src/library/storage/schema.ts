@@ -12,6 +12,7 @@ export const ConnectionConfigSchema = z.object({
   path: z.string().min(1).default('/jsonrpc'),
   secret: z.string().default(''),
   timeoutMs: z.coerce.number().int().min(500).max(30000).default(5000),
+  verifiedAt: z.coerce.number().int().min(0).default(0),
 });
 
 export const DownloadSettingsSchema = z.object({

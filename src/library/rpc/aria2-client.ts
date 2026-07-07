@@ -162,12 +162,20 @@ export class Aria2RpcClient {
     return this.call('aria2.remove', gid);
   }
 
+  removeDownloadResult(gid: string): Promise<unknown> {
+    return this.call('aria2.removeDownloadResult', gid);
+  }
+
   pauseAll(): Promise<unknown> {
     return this.call('aria2.pauseAll');
   }
 
   resumeAll(): Promise<unknown> {
     return this.call('aria2.unpauseAll');
+  }
+
+  purgeDownloadResult(): Promise<unknown> {
+    return this.call('aria2.purgeDownloadResult');
   }
 
   async call(method: string, ...params: unknown[]): Promise<unknown> {
