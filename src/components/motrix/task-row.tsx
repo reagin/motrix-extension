@@ -21,7 +21,7 @@ export function TaskRow({ task, onPause, onResume, onRemove }: TaskRowProps) {
   const isActive = task.status === 'active';
   const isPaused = task.status === 'paused' || task.status === 'waiting';
   return (
-    <div data-reveal className='rounded-lg border bg-(--m3-surface) px-3 py-2 shadow-(--m3-shadow-card)'>
+    <div data-reveal className='h-[92px] overflow-hidden rounded-lg border bg-(--m3-surface) px-3 py-2 shadow-(--m3-shadow-card)'>
       <div className='flex items-start justify-between gap-2'>
         <div className='min-w-0'>
           <div className='pointer-events-none truncate text-[13px] leading-snug font-semibold'>{getTaskName(task)}</div>
@@ -29,7 +29,7 @@ export function TaskRow({ task, onPause, onResume, onRemove }: TaskRowProps) {
             <Badge variant={isActive ? 'good' : isPaused ? 'warn' : 'quiet'} className='rounded-full px-1.5 py-0 text-[10px]'>
               {task.status}
             </Badge>
-            <span className='metric-font'>
+            <span className='metric-font min-w-0 truncate'>
               {formatBytes(task.completedLength)}
               {' '}
               /
@@ -61,21 +61,26 @@ export function TaskRow({ task, onPause, onResume, onRemove }: TaskRowProps) {
           %
         </span>
       </div>
-      {task.status === 'active'
-        ? (
-            <div className='pointer-events-none mt-1 flex gap-3 text-[11px] text-muted-foreground'>
-              <span className='metric-font text-speed-download'>
-                ↓
-                {formatSpeed(task.downloadSpeed)}
-              </span>
-              <span className='metric-font text-speed-upload'>
-                ↑
-                {formatSpeed(task.uploadSpeed)}
-              </span>
-            </div>
-          )
-        : null}
-      {task.errorMessage ? <div className='pointer-events-none mt-1 text-xs text-destructive'>{task.errorMessage}</div> : null}
+      <div className='pointer-events-none mt-1 flex h-4 items-center gap-3 overflow-hidden text-[11px] leading-4 text-muted-foreground'>
+        {task.errorMessage
+          ? (
+              <span className='truncate text-destructive' title={task.errorMessage}>{task.errorMessage}</span>
+            )
+          : task.status === 'active'
+            ? (
+                <>
+                  <span className='metric-font text-speed-download'>
+                    ↓
+                    {formatSpeed(task.downloadSpeed)}
+                  </span>
+                  <span className='metric-font text-speed-upload'>
+                    ↑
+                    {formatSpeed(task.uploadSpeed)}
+                  </span>
+                </>
+              )
+            : null}
+      </div>
     </div>
   );
 }
