@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Activity,
-  Gauge,
+  AlertCircle,
+  ArrowDown,
+  ArrowUp,
+  CheckCircle2,
+  Clock,
   Languages,
   Pause,
   Play,
@@ -9,7 +13,7 @@ import {
   Power,
   RefreshCw,
   Settings,
-  ShieldCheck,
+  Zap,
 } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import type { RuntimeState } from '@/src/lib/messages';
@@ -134,24 +138,92 @@ export default function App() {
     [runtime?.tasks.active.length, runtime?.tasks.waiting.length, runtime?.tasks.stopped.length],
   );
 
+  const isConnected = Boolean(runtime?.connection.ok);
+  const isIdle = (Number(runtime?.stat?.numActive) || 0) === 0;
+
   return (
-    <div className="w-[400px] bg-background text-foreground">
+    <div className="w-[380px] bg-[var(--m3-surface)] text-foreground">
       <Toaster richColors position="top-center" />
-      <div className="border-b bg-card px-4 py-3">
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <div className="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                <Gauge className="size-4" />
-              </div>
-              <div>
-                <h1 className="text-base font-semibold leading-tight">{t('popup.title')}</h1>
-                <p className="truncate text-xs text-muted-foreground">{t('popup.subtitle')}</p>
-              </div>
+      <header className="flex items-center justify-between px-3 py-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="flex size-7 shrink-0 items-center justify-center rounded-full text-primary">
+            <Activity className="size-5" />
+          </div>
+          <Badge variant={isConnected ? 'good' : 'destructive'} className="rounded-full px-2 py-0.5 text-[10px] font-semibold">
+            {isConnected ? t('common.connected') : t('common.disconnected')}
+          </Badge>
+          {runtime?.connection.version ? (
+            <span className="metric-font text-[11px] text-muted-foreground">v{runtime.connection.version}</span>
+          ) : null}
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <div className="flex items-center gap-1.5">
+            <span className="relative grid min-w-[70px] text-right text-[11px] font-semibold">
+              <span
+                className={cn(
+                  'col-start-1 row-start-1 text-[var(--m3-success)] transition-all duration-300',
+                  snapshot.settings.enabled ? 'translate-y-0 opacity-100' : '-translate-y-1.5 opacity-0',
+                )}
+              >
+                {t('popup.captureOn')}
+              </span>
+              <span
+                className={cn(
+                  'col-start-1 row-start-1 text-muted-foreground transition-all duration-300',
+                  snapshot.settings.enabled ? 'translate-y-1.5 opacity-0' : 'translate-y-0 opacity-100',
+                )}
+              >
+                {t('popup.captureOff')}
+              </span>
+            </span>
+            <Switch checked={snapshot.settings.enabled} onCheckedChange={(checked) => void updateInterception(checked)} />
+          </div>
+          <Button variant="quiet" size="icon" className="rounded-full" disabled={runtimeLoading} onClick={() => void refreshRuntime()} title={t('common.retry')}>
+            <RefreshCw className={cn(runtimeLoading && 'animate-spin')} />
+          </Button>
+          <Button variant="quiet" size="icon" className="rounded-full" onClick={openOptions} title={t('common.settings')}>
+            <Settings />
+          </Button>
+        </div>
+      </header>
+
+      <div ref={revealRef}>
+        {!isConnected ? (
+          <section data-reveal className="mx-4 mb-2 flex items-start gap-2.5 rounded-[10px] border border-[color-mix(in_srgb,hsl(var(--destructive))_20%,transparent)] bg-[color-mix(in_srgb,hsl(var(--destructive))_6%,transparent)] px-3 py-2.5">
+            <AlertCircle className="mt-0.5 size-4 shrink-0 text-destructive" />
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-destructive">{t('status.offline')}</p>
+              <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
+                {t('popup.connectionHint', { port: snapshot.connection.port })}
+              </p>
+            </div>
+          </section>
+        ) : null}
+
+        <section data-reveal className={cn('px-4 transition-opacity duration-300', isIdle && 'opacity-45')}>
+          <div className="flex items-center justify-center py-[18px] pb-3.5">
+            <div className="flex flex-1 items-center justify-center gap-1.5 text-primary">
+              <ArrowDown className="size-4 shrink-0" />
+              <span className="metric-font text-[22px] font-bold tracking-[-0.02em]">
+                {formatSpeed(runtime?.stat?.downloadSpeed)}
+              </span>
+            </div>
+            <div className="h-6 w-px shrink-0 bg-border" />
+            <div className="flex flex-1 items-center justify-center gap-1.5 text-muted-foreground">
+              <ArrowUp className="size-3.5 shrink-0" />
+              <span className="metric-font text-sm font-medium">{formatSpeed(runtime?.stat?.uploadSpeed)}</span>
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-1">
-            <label className="relative flex h-8 w-[112px] items-center rounded-md bg-muted px-2 text-xs text-foreground focus-within:ring-2 focus-within:ring-ring">
+          <div className={cn('flex items-center justify-around border-t py-2.5 transition-opacity duration-300', !snapshot.settings.enabled && 'opacity-35')}>
+            <StatCount icon={Zap} label={t('common.active')} value={counts.active} className="text-primary" />
+            <StatCount icon={Clock} label={t('common.waiting')} value={counts.waiting} className="text-[var(--m3-warning)]" />
+            <StatCount icon={CheckCircle2} label={t('common.stopped')} value={counts.stopped} className="text-[var(--m3-success)]" />
+          </div>
+        </section>
+
+        <section data-reveal className="mx-3 mt-2 rounded-xl border bg-[var(--m3-surface-container)] p-2.5 shadow-[var(--m3-shadow-card)]">
+          <div className="flex gap-2">
+            <label className="relative flex h-9 w-[92px] shrink-0 items-center rounded-md border bg-[var(--m3-surface)] px-2 text-xs text-foreground focus-within:ring-2 focus-within:ring-ring">
               <Languages className="mr-1 size-3.5 shrink-0 text-muted-foreground" />
               <select
                 value={locale}
@@ -166,97 +238,25 @@ export default function App() {
                 ))}
               </select>
             </label>
-            <Button variant="quiet" size="icon" onClick={openOptions} title={t('common.settings')}>
-              <Settings />
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div ref={revealRef} className="space-y-3 p-4">
-        <section data-reveal className="rounded-lg border bg-card p-3">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <StatusDot ok={Boolean(runtime?.connection.ok)} checking={runtimeLoading} />
-                <span className="text-sm font-medium">
-                  {runtime?.connection.ok ? t('status.online') : t('status.offline')}
-                </span>
-                {runtime?.connection.version ? <Badge variant="secondary">aria2 {runtime.connection.version}</Badge> : null}
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {runtime?.connection.ok
-                  ? t('popup.rpcLatency', { ms: runtime.connection.latencyMs ?? 0 })
-                  : t('popup.connectionHint', { port: snapshot.connection.port })}
-              </p>
-            </div>
-            <Button variant="outline" size="sm" disabled={runtimeLoading} onClick={() => void refreshRuntime()}>
-              <RefreshCw className={cn(runtimeLoading && 'animate-spin')} />
-              {t('common.retry')}
-            </Button>
-          </div>
-        </section>
-
-        <section data-reveal className="grid grid-cols-2 gap-2">
-          <div className="rounded-lg border bg-card p-3">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Activity className="size-3.5 text-speed-download" />
-              {t('popup.downloadSpeed')}
-            </div>
-            <div className="metric-font mt-1 text-lg font-semibold text-speed-download">
-              {formatSpeed(runtime?.stat?.downloadSpeed)}
-            </div>
-          </div>
-          <div className="rounded-lg border bg-card p-3">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Activity className="size-3.5 rotate-180 text-speed-upload" />
-              {t('popup.uploadSpeed')}
-            </div>
-            <div className="metric-font mt-1 text-lg font-semibold text-speed-upload">
-              {formatSpeed(runtime?.stat?.uploadSpeed)}
-            </div>
-          </div>
-        </section>
-
-        <section data-reveal className="rounded-lg border bg-card p-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="size-4 text-primary" />
-              <div>
-                <div className="text-sm font-medium">{t('popup.interception')}</div>
-                <div className="text-xs text-muted-foreground">
-                  {snapshot.settings.enabled ? t('popup.captureOn') : t('popup.captureOff')}
-                </div>
-              </div>
-            </div>
-            <Switch
-              checked={snapshot.settings.enabled}
-              onCheckedChange={(checked) => void updateInterception(checked)}
-            />
-          </div>
-        </section>
-
-        <section data-reveal className="rounded-lg border bg-card p-3">
-          <div className="flex gap-2">
             <Input
               value={url}
               onChange={(event) => setUrl(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === 'Enter') void addTask();
               }}
+              className="h-9 bg-[var(--m3-surface)] text-xs"
               placeholder={t('popup.addTaskPlaceholder')}
             />
-            <Button disabled={busy || !url.trim()} onClick={() => void addTask()}>
+            <Button size="sm" disabled={busy || !url.trim()} onClick={() => void addTask()}>
               <Plus />
-              {t('common.add')}
             </Button>
           </div>
         </section>
 
-        <section data-reveal className="rounded-lg border bg-card p-3">
+        <section data-reveal className="mx-3 mt-2 rounded-xl border bg-[var(--m3-surface-container)] p-2.5 shadow-[var(--m3-shadow-card)]">
           <Tabs defaultValue="active">
             <div className="flex items-center justify-between gap-2">
-              <TabsList className="grid flex-1 grid-cols-3">
+              <TabsList className="grid h-8 flex-1 grid-cols-3 bg-[var(--m3-surface-container-high)]">
                 <TabsTrigger value="active">
                   {t('common.active')} <span className="ml-1 text-xs text-muted-foreground">{counts.active}</span>
                 </TabsTrigger>
@@ -295,11 +295,11 @@ export default function App() {
           </Tabs>
         </section>
 
-        <Separator />
+        <Separator className="mt-3" />
 
-        <div data-reveal className="flex items-center justify-between gap-2">
+        <div data-reveal className="flex items-center justify-between gap-2 px-3 py-3">
           <Button
-            variant="outline"
+            variant="quiet"
             size="sm"
             disabled={busy}
             onClick={() => void runAction(t('popup.pauseAll'), () => sendRuntimeMessage({ type: 'pause-all' }))}
@@ -308,7 +308,7 @@ export default function App() {
             {t('popup.pauseAll')}
           </Button>
           <Button
-            variant="outline"
+            variant="quiet"
             size="sm"
             disabled={busy}
             onClick={() => void runAction(t('popup.resumeAll'), () => sendRuntimeMessage({ type: 'resume-all' }))}
@@ -325,6 +325,26 @@ export default function App() {
           </Button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function StatCount({
+  icon: Icon,
+  label,
+  value,
+  className,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: number;
+  className?: string;
+}) {
+  return (
+    <div className={cn('flex items-center gap-1.5 text-xs', className)}>
+      <Icon className="size-3.5" />
+      <span className="font-medium">{label}</span>
+      <span className="metric-font min-w-4 text-center text-sm font-bold">{value}</span>
     </div>
   );
 }
@@ -360,7 +380,7 @@ function TaskList({
             ))}
           </div>
         ) : (
-          <div className="flex h-[220px] items-center justify-center rounded-md border border-dashed text-center text-sm text-muted-foreground">
+          <div className="flex h-[220px] items-center justify-center rounded-md border border-dashed bg-[var(--m3-surface)] text-center text-sm text-muted-foreground">
             {empty}
           </div>
         )}

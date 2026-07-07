@@ -34,13 +34,14 @@ import { useI18n } from '@/src/hooks/use-i18n';
 import { useTheme } from '@/src/hooks/use-theme';
 import { cn } from '@/src/lib/utils';
 
-type SectionId = 'connection' | 'download' | 'rules' | 'appearance' | 'maintenance';
+type SectionId = 'connection' | 'download' | 'rules' | 'appearance' | 'language' | 'maintenance';
 
 const sections: Array<{ id: SectionId; icon: React.ComponentType<{ className?: string }>; key: string }> = [
   { id: 'connection', icon: Plug, key: 'options.connection' },
   { id: 'download', icon: Download, key: 'options.download' },
   { id: 'rules', icon: Shield, key: 'options.rules' },
   { id: 'appearance', icon: Paintbrush, key: 'options.appearance' },
+  { id: 'language', icon: Languages, key: 'options.language' },
   { id: 'maintenance', icon: Wrench, key: 'options.maintenance' },
 ];
 
@@ -149,13 +150,18 @@ export default function App() {
   const allowedExtensions = useMemo(() => snapshot.settings.allowedExtensions.join('\n'), [snapshot.settings.allowedExtensions]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="flex min-h-screen flex-col bg-[var(--m3-surface)] text-foreground">
       <Toaster richColors position="top-center" />
-      <header className="border-b bg-card">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div>
-            <h1 className="text-xl font-semibold tracking-tight">{t('options.title')}</h1>
-            <p className="text-sm text-muted-foreground">{t('options.subtitle')}</p>
+      <header className="border-b bg-[var(--m3-surface-container-low)] px-8 pb-4 pt-7">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3.5">
+            <div className="flex size-10 items-center justify-center rounded-full text-primary">
+              <Activity className="size-7" />
+            </div>
+            <div>
+              <h1 className="text-[22px] font-bold tracking-[-0.01em]">{t('options.title')}</h1>
+              <p className="mt-0.5 text-[13px] text-muted-foreground">{t('options.subtitle')}</p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="secondary">Chrome MV3</Badge>
@@ -164,8 +170,8 @@ export default function App() {
         </div>
       </header>
 
-      <main className="mx-auto grid max-w-6xl grid-cols-[220px_1fr] gap-6 px-6 py-6">
-        <nav className="space-y-1">
+      <main className="flex flex-1 px-6 py-4 max-[640px]:flex-col max-[640px]:px-0 max-[640px]:py-0">
+        <nav className="flex min-w-[170px] flex-1 flex-col gap-0.5 p-2 max-[640px]:w-full max-[640px]:min-w-0 max-[640px]:flex-row max-[640px]:overflow-x-auto max-[640px]:px-3">
           {sections.map((section) => {
             const Icon = section.icon;
             return (
@@ -173,8 +179,10 @@ export default function App() {
                 key={section.id}
                 onClick={() => setActive(section.id)}
                 className={cn(
-                  'flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors',
-                  active === section.id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                  'flex w-full items-center gap-2.5 rounded-[10px] px-3.5 py-2.5 text-left text-[13px] font-medium transition-colors max-[640px]:min-w-16 max-[640px]:flex-col max-[640px]:gap-1 max-[640px]:text-center max-[640px]:text-[11px]',
+                  active === section.id
+                    ? 'bg-[var(--m3-primary-container)] text-[var(--m3-on-primary-container)] hover:brightness-95'
+                    : 'text-muted-foreground hover:bg-[color-mix(in_srgb,var(--m3-on-surface)_6%,transparent)] hover:text-foreground',
                 )}
               >
                 <Icon className="size-4" />
@@ -184,7 +192,7 @@ export default function App() {
           })}
         </nav>
 
-        <div className="min-w-0">
+        <div className="min-w-0 flex-[3] border-l border-border px-4 pb-8 pt-2 max-[640px]:border-l-0 max-[640px]:px-4 max-[640px]:pt-4">
           {active === 'connection' ? (
             <Section title={t('options.connection')} icon={Plug}>
               <div className="grid grid-cols-3 gap-4">
@@ -210,7 +218,7 @@ export default function App() {
                   {t('options.parseRpcUrl')}
                 </Button>
               </div>
-              <div className="flex items-center justify-between rounded-md border bg-muted/40 p-3">
+              <div className="flex items-center justify-between rounded-xl border bg-[var(--m3-surface)] p-3">
                 <div className="flex items-center gap-2">
                   {connectionResult ? <StatusDot ok={connectionResult.ok} /> : <Activity className="size-4 text-muted-foreground" />}
                   <span className="text-sm">
@@ -279,7 +287,7 @@ export default function App() {
               </div>
               <div className="space-y-2">
                 {snapshot.siteRules.map((rule) => (
-                  <div key={rule.id} className="flex items-center gap-3 rounded-md border bg-background p-3">
+                  <div key={rule.id} className="flex items-center gap-3 rounded-xl border bg-[var(--m3-surface)] p-3">
                     <Switch checked={rule.enabled} onCheckedChange={(enabled) => void persistRules(snapshot.siteRules.map((item) => item.id === rule.id ? { ...item, enabled } : item))} />
                     <Badge variant={rule.action === 'allow' ? 'good' : 'destructive'}>{rule.action}</Badge>
                     <span className="min-w-0 flex-1 truncate text-sm">{rule.pattern}</span>
@@ -292,13 +300,7 @@ export default function App() {
 
           {active === 'appearance' ? (
             <Section title={t('options.appearance')} icon={Paintbrush}>
-              <div className="grid grid-cols-3 gap-4">
-                <Field label={t('options.language')}>
-                  <Select value={snapshot.ui.locale} onValueChange={(locale) => void persistUi({ ...snapshot.ui, locale: locale as Locale })}>
-                    <SelectTrigger><Languages className="mr-2 size-4" /><SelectValue /></SelectTrigger>
-                    <SelectContent>{Object.entries(localeLabels).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent>
-                  </Select>
-                </Field>
+              <div className="grid grid-cols-2 gap-4">
                 <Field label={t('options.theme')}>
                   <Select value={snapshot.ui.theme} onValueChange={(theme) => void persistUi({ ...snapshot.ui, theme: theme as StorageSnapshot['ui']['theme'] })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
@@ -323,6 +325,19 @@ export default function App() {
             </Section>
           ) : null}
 
+          {active === 'language' ? (
+            <Section title={t('options.language')} icon={Languages}>
+              <div className="grid max-w-md gap-4">
+                <Field label={t('options.language')}>
+                  <Select value={snapshot.ui.locale} onValueChange={(locale) => void persistUi({ ...snapshot.ui, locale: locale as Locale })}>
+                    <SelectTrigger><Languages className="mr-2 size-4" /><SelectValue /></SelectTrigger>
+                    <SelectContent>{Object.entries(localeLabels).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent>
+                  </Select>
+                </Field>
+              </div>
+            </Section>
+          ) : null}
+
           {active === 'maintenance' ? (
             <Section title={t('options.maintenance')} icon={Wrench}>
               <div className="flex flex-wrap gap-2">
@@ -332,10 +347,10 @@ export default function App() {
                 <Button variant="destructive" onClick={() => void restoreDefaults()}><RotateCcw />{t('options.restoreDefaults')}</Button>
                 <input ref={fileInputRef} type="file" accept="application/json" className="hidden" onChange={(event) => void importSettings(event.target.files?.[0])} />
               </div>
-              <ScrollArea className="h-[420px] rounded-md border bg-background">
+              <ScrollArea className="h-[420px] rounded-xl border bg-[var(--m3-surface)]">
                 <div className="space-y-2 p-3">
                   {snapshot.diagnostics.map((event) => (
-                    <div key={event.id} className="rounded-md border bg-card p-3">
+                    <div key={event.id} className="rounded-lg border bg-[var(--m3-surface-container-low)] p-3">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <Badge variant={event.level === 'error' ? 'destructive' : event.level === 'warn' ? 'warn' : 'quiet'}>{event.level}</Badge>
@@ -358,20 +373,26 @@ export default function App() {
           ) : null}
         </div>
       </main>
+      <footer className="border-t py-4 text-center text-xs text-muted-foreground opacity-60">
+        Motrix Extension v0.1.0
+      </footer>
     </div>
   );
 }
 
 function Section({ title, icon: Icon, children }: { title: string; icon: React.ComponentType<{ className?: string }>; children: React.ReactNode }) {
   return (
-    <section className="space-y-5 rounded-lg border bg-card p-5">
-      <div className="flex items-center gap-2">
-        <div className="flex size-9 items-center justify-center rounded-md bg-primary/12 text-primary">
-          <Icon className="size-4" />
+    <section className="space-y-3">
+      <h2 className="text-[13px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">{title}</h2>
+      <div className="space-y-5 rounded-2xl border bg-[var(--m3-surface-container)] p-5 shadow-[var(--m3-shadow-card)]">
+        <div className="flex items-center gap-2">
+          <div className="flex size-9 items-center justify-center rounded-xl bg-[color-mix(in_srgb,hsl(var(--primary))_12%,transparent)] text-primary">
+            <Icon className="size-4" />
+          </div>
+          <h3 className="text-base font-semibold">{title}</h3>
         </div>
-        <h2 className="text-lg font-semibold">{title}</h2>
+        {children}
       </div>
-      {children}
     </section>
   );
 }
@@ -381,14 +402,14 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
     <div className="space-y-2">
       <Label>{label}</Label>
       {children}
-      {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
+      {hint ? <p className="text-xs leading-relaxed text-muted-foreground">{hint}</p> : null}
     </div>
   );
 }
 
 function SettingSwitch({ label, checked, onCheckedChange }: { label: string; checked: boolean; onCheckedChange: (checked: boolean) => void }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-md border bg-background p-3">
+    <div className="flex items-center justify-between gap-3 rounded-xl border bg-[var(--m3-surface)] p-3">
       <span className="text-sm font-medium">{label}</span>
       <Switch checked={checked} onCheckedChange={onCheckedChange} />
     </div>

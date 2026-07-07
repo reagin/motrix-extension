@@ -18,12 +18,12 @@ export function TaskRow({ task, onPause, onResume, onRemove }: TaskRowProps) {
   const isActive = task.status === 'active';
   const isPaused = task.status === 'paused' || task.status === 'waiting';
   return (
-    <div data-reveal className="rounded-md border bg-background/65 px-3 py-2">
+    <div data-reveal className="rounded-lg border bg-[var(--m3-surface)] px-3 py-2 shadow-[var(--m3-shadow-card)]">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="truncate text-sm font-medium">{getTaskName(task)}</div>
+          <div className="truncate text-[13px] font-semibold leading-snug">{getTaskName(task)}</div>
           <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-            <Badge variant={isActive ? 'good' : isPaused ? 'warn' : 'quiet'} className="px-1.5 py-0">
+            <Badge variant={isActive ? 'good' : isPaused ? 'warn' : 'quiet'} className="rounded-full px-1.5 py-0 text-[10px]">
               {task.status}
             </Badge>
             <span className="metric-font">
@@ -33,15 +33,15 @@ export function TaskRow({ task, onPause, onResume, onRemove }: TaskRowProps) {
         </div>
         <div className="flex shrink-0 gap-1">
           {isActive ? (
-            <Button variant="quiet" size="icon" title="Pause" onClick={() => onPause(task.gid)}>
+            <Button variant="quiet" size="icon" className="size-7 rounded-full" title="Pause" onClick={() => onPause(task.gid)}>
               <Pause />
             </Button>
           ) : (
-            <Button variant="quiet" size="icon" title="Resume" onClick={() => onResume(task.gid)}>
+            <Button variant="quiet" size="icon" className="size-7 rounded-full" title="Resume" onClick={() => onResume(task.gid)}>
               <Play />
             </Button>
           )}
-          <Button variant="quiet" size="icon" title="Remove" onClick={() => onRemove(task.gid)}>
+          <Button variant="quiet" size="icon" className="size-7 rounded-full" title="Remove" onClick={() => onRemove(task.gid)}>
             <Trash2 />
           </Button>
         </div>

@@ -8,59 +8,96 @@
 
 :root {
   color-scheme: light;
-  --background: 210 20% 98%;
-  --foreground: 224 16% 14%;
-  --card: 0 0% 100%;
-  --card-foreground: 224 16% 14%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 224 16% 14%;
-  --primary: 177 65% 27%;
+  --background: 40 80% 98%;
+  --foreground: 42 14% 10%;
+  --card: 36 31% 93%;
+  --card-foreground: 42 14% 10%;
+  --popover: 40 80% 98%;
+  --popover-foreground: 42 14% 10%;
+  --primary: 43 100% 24%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 218 16% 91%;
-  --secondary-foreground: 224 16% 18%;
-  --muted: 216 18% 94%;
-  --muted-foreground: 222 9% 45%;
-  --accent: 43 96% 56%;
-  --accent-foreground: 226 28% 12%;
-  --destructive: 0 72% 51%;
+  --secondary: 38 32% 94%;
+  --secondary-foreground: 42 18% 12%;
+  --muted: 38 24% 91%;
+  --muted-foreground: 38 15% 26%;
+  --accent: 37 100% 82%;
+  --accent-foreground: 39 100% 8%;
+  --destructive: 0 75% 42%;
   --destructive-foreground: 0 0% 100%;
-  --border: 218 16% 86%;
-  --input: 218 16% 86%;
-  --ring: 177 65% 27%;
-  --radius: 0.5rem;
-  --speed-download: 177 65% 32%;
-  --speed-upload: 224 52% 42%;
-  --task-active: 177 65% 32%;
-  --task-waiting: 43 96% 46%;
-  --task-stopped: 222 9% 45%;
+  --border: 37 24% 77%;
+  --input: 37 24% 77%;
+  --ring: 43 100% 24%;
+  --radius: 0.625rem;
+  --speed-download: 43 100% 24%;
+  --speed-upload: 38 15% 26%;
+  --task-active: 43 100% 24%;
+  --task-waiting: 43 100% 24%;
+  --task-stopped: 96 54% 27%;
+
+  --m3-surface: #fefbf6;
+  --m3-surface-container-lowest: #ffffff;
+  --m3-surface-container-low: #f9f5ee;
+  --m3-surface-container: #f3efe8;
+  --m3-surface-container-high: #ede9e2;
+  --m3-surface-container-highest: #e7e3dd;
+  --m3-on-surface: #1d1b16;
+  --m3-on-surface-variant: #4d4639;
+  --m3-outline-variant: #d1c7b7;
+  --m3-primary-container: #ffdea3;
+  --m3-on-primary-container: #271900;
+  --m3-error-container: #ffdad6;
+  --m3-success: #386a20;
+  --m3-warning: #7c5800;
+  --m3-ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --m3-ease-emphasized-decel: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --m3-ease-emphasized-accel: cubic-bezier(0.3, 0, 0.8, 0.15);
+  --m3-shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+  --m3-shadow-elevated: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06);
 }
 
 .dark {
   color-scheme: dark;
-  --background: 222 20% 8%;
-  --foreground: 214 26% 92%;
-  --card: 222 18% 11%;
-  --card-foreground: 214 26% 92%;
-  --popover: 222 18% 11%;
-  --popover-foreground: 214 26% 92%;
-  --primary: 176 70% 42%;
-  --primary-foreground: 222 20% 8%;
-  --secondary: 220 14% 18%;
-  --secondary-foreground: 214 26% 90%;
-  --muted: 220 14% 16%;
-  --muted-foreground: 218 11% 66%;
-  --accent: 43 96% 58%;
-  --accent-foreground: 226 28% 12%;
-  --destructive: 0 74% 58%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 220 14% 22%;
-  --input: 220 14% 22%;
-  --ring: 176 70% 42%;
-  --speed-download: 176 70% 46%;
-  --speed-upload: 217 80% 66%;
-  --task-active: 176 70% 46%;
-  --task-waiting: 43 96% 58%;
-  --task-stopped: 218 11% 66%;
+  --background: 30 11% 7%;
+  --foreground: 36 26% 88%;
+  --card: 30 9% 12%;
+  --card-foreground: 36 26% 88%;
+  --popover: 30 9% 12%;
+  --popover-foreground: 36 26% 88%;
+  --primary: 42 84% 61%;
+  --primary-foreground: 42 100% 13%;
+  --secondary: 30 7% 16%;
+  --secondary-foreground: 36 26% 88%;
+  --muted: 30 7% 16%;
+  --muted-foreground: 38 16% 77%;
+  --accent: 39 100% 32%;
+  --accent-foreground: 37 100% 82%;
+  --destructive: 6 100% 84%;
+  --destructive-foreground: 357 100% 22%;
+  --border: 37 12% 26%;
+  --input: 37 12% 26%;
+  --ring: 42 84% 61%;
+  --speed-download: 42 84% 61%;
+  --speed-upload: 38 16% 77%;
+  --task-active: 42 84% 61%;
+  --task-waiting: 42 84% 61%;
+  --task-stopped: 96 58% 64%;
+
+  --m3-surface: #141210;
+  --m3-surface-container-lowest: #0e0d0b;
+  --m3-surface-container-low: #1c1a17;
+  --m3-surface-container: #201e1b;
+  --m3-surface-container-high: #2b2926;
+  --m3-surface-container-highest: #363331;
+  --m3-on-surface: #e8e2d9;
+  --m3-on-surface-variant: #d0c8b9;
+  --m3-outline-variant: #4d4639;
+  --m3-primary-container: #5e4200;
+  --m3-on-primary-container: #ffdea3;
+  --m3-error-container: #93000a;
+  --m3-success: #8edb6a;
+  --m3-warning: #f0bf48;
+  --m3-shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.25), 0 1px 2px -1px rgb(0 0 0 / 0.2);
+  --m3-shadow-elevated: 0 4px 6px -1px rgb(0 0 0 / 0.35), 0 2px 4px -2px rgb(0 0 0 / 0.25);
 }
 
 @theme inline {
@@ -105,14 +142,35 @@ body,
 }
 
 body {
-  background: hsl(var(--background));
-  color: hsl(var(--foreground));
+  background: var(--m3-surface);
+  color: var(--m3-on-surface);
   font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  line-height: 1.6;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+button {
+  transition:
+    background-color 0.2s var(--m3-ease-emphasized),
+    color 0.2s var(--m3-ease-emphasized),
+    border-color 0.2s var(--m3-ease-emphasized),
+    box-shadow 0.2s var(--m3-ease-emphasized),
+    transform 0.35s var(--m3-ease-emphasized-decel);
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.98);
+  transition:
+    background-color 0.15s var(--m3-ease-emphasized),
+    color 0.15s var(--m3-ease-emphasized),
+    border-color 0.15s var(--m3-ease-emphasized),
+    box-shadow 0.15s var(--m3-ease-emphasized),
+    transform 0.15s var(--m3-ease-emphasized);
 }
 
 button,
