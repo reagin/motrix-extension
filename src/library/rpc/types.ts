@@ -58,11 +58,13 @@ export interface AddUriOptions {
 }
 
 export interface AddDownloadInput {
+  /** Original browser download URL. This is the task URL Motrix should store. */
   url: string;
   dir?: string;
   cookie?: string;
   referer?: string;
   filename?: string;
+  /** Browser-resolved URL after redirects. Used for metadata and diagnostics only. */
   finalUrl?: string;
   userAgent?: string;
   requestHeaders?: Array<{ name: string; value: string }>;

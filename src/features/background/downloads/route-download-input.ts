@@ -10,14 +10,18 @@ export async function routeDownloadInput(
   snapshot: StorageSnapshot,
   source: string,
 ): Promise<void> {
+  const taskUrl = input.url;
+  const context = input.finalUrl && input.finalUrl !== taskUrl
+    ? { source, url: taskUrl, finalUrl: input.finalUrl, filename: input.filename }
+    : { source, url: taskUrl, filename: input.filename };
   const client = new Aria2RpcClient(snapshot.connection);
   try {
     const result = await client.addDownload(input);
     await appendDiagnostic({
       level: 'info',
       code: 'download_routed',
-      message: `Routed to Motrix: ${input.finalUrl || input.url}`,
-      context: { source, gid: result.gid, url: input.finalUrl || input.url, filename: input.filename },
+      message: `Routed to Motrix: ${taskUrl}`,
+      context: { ...context, gid: result.gid },
     });
     return;
   } catch (error) {
@@ -25,7 +29,7 @@ export async function routeDownloadInput(
       level: error instanceof RpcAuthError ? 'error' : 'warn',
       code: error instanceof RpcAuthError ? 'rpc_auth_failed' : 'rpc_route_failed',
       message: error instanceof Error ? error.message : String(error),
-      context: { source, url: input.finalUrl || input.url },
+      context,
     });
     if (error instanceof RpcAuthError || !snapshot.settings.autoLaunchApp) throw error;
   }
@@ -39,17 +43,17 @@ export async function routeDownloadInput(
     await appendDiagnostic({
       level: 'info',
       code: 'download_routed_after_wake',
-      message: `Routed to Motrix after wake: ${input.finalUrl || input.url}`,
-      context: { source, gid: result.gid },
+      message: `Routed to Motrix after wake: ${taskUrl}`,
+      context: { ...context, gid: result.gid },
     });
   } catch (error) {
     await appendDiagnostic({
       level: 'warn',
       code: 'protocol_fallback',
-      message: `Falling back to motrix:// for ${input.finalUrl || input.url}`,
-      context: { source, error: error instanceof Error ? error.message : String(error) },
+      message: `Falling back to motrix:// for ${taskUrl}`,
+      context: { ...context, error: error instanceof Error ? error.message : String(error) },
     });
-    await openMotrixNewTask(input.finalUrl || input.url);
+    await openMotrixNewTask(taskUrl);
   }
 }
 

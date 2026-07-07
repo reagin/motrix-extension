@@ -144,7 +144,7 @@ export class Aria2RpcClient {
   }
 
   async addDownload(input: AddDownloadInput): Promise<{ gid: string }> {
-    const url = input.finalUrl || input.url;
+    const url = input.url;
     const options = buildAddUriOptions(input);
     const result = z.string().parse(await this.call('aria2.addUri', [url], options));
     return { gid: result };

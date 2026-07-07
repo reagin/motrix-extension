@@ -4,7 +4,12 @@ import type { DownloadItem } from '@/features/background/downloads/types';
 import { handleMessage } from '@/features/background/messaging/handle-message';
 import { ensureContextMenu, handleContextMenuClick } from '@/features/background/context-menu';
 import { handleDownloadCreated } from '@/features/background/downloads/handle-download-created';
-import { captureRequestHeaders, captureResponseHeaders } from '@/features/background/downloads/request-capture';
+import {
+  captureRedirect,
+  captureRequest,
+  captureRequestHeaders,
+  captureResponseHeaders,
+} from '@/features/background/downloads/request-capture';
 
 export default defineBackground(() => {
   browser.runtime.onInstalled.addListener(() => {
@@ -20,6 +25,22 @@ export default defineBackground(() => {
   browser.downloads.onCreated.addListener((item) => {
     void handleDownloadCreated(item as DownloadItem);
   });
+
+  browser.webRequest.onBeforeRequest.addListener(
+    (details) => {
+      captureRequest(details);
+      return undefined;
+    },
+    { urls: ['http://*/*', 'https://*/*'] },
+  );
+
+  browser.webRequest.onBeforeRedirect.addListener(
+    (details) => {
+      captureRedirect(details);
+      return undefined;
+    },
+    { urls: ['http://*/*', 'https://*/*'] },
+  );
 
   browser.webRequest.onBeforeSendHeaders.addListener(
     (details) => {
