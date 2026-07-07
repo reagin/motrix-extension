@@ -12,7 +12,7 @@ import {
   updateUi,
   type StorageSnapshot,
 } from '@/src/lib/storage';
-import type { RuntimeMessage, RuntimeResponse, PopupState } from '@/src/lib/messages';
+import type { RuntimeMessage, RuntimeResponse, PopupState, RuntimeState } from '@/src/lib/messages';
 import { shouldInterceptDownload, isProtocolEnabled } from '@/src/lib/download/filter';
 import { RequestContextStore } from '@/src/lib/download/request-context';
 import { FilenameMetadataStore, filenameFromUrl, sanitizeFilename } from '@/src/lib/download/filename-metadata';
@@ -35,6 +35,7 @@ interface DownloadItem {
 const requestContexts = new RequestContextStore();
 const filenameMetadata = new FilenameMetadataStore();
 const duplicateGuard = new DuplicateGuard();
+const POPUP_RPC_TIMEOUT_MS = 1200;
 
 export default defineBackground(() => {
   browser.runtime.onInstalled.addListener(() => {
@@ -244,6 +245,10 @@ async function handleMessage(message: RuntimeMessage): Promise<RuntimeResponse> 
     switch (message.type) {
       case 'popup-state':
         return { ok: true, state: await buildPopupState() };
+      case 'runtime-state':
+        return { ok: true, runtime: await buildRuntimeState(await loadSnapshot()) };
+      case 'settings-snapshot':
+        return { ok: true, snapshot: await loadSnapshot() };
       case 'test-connection': {
         const snapshot = await loadSnapshot();
         const client = new Aria2RpcClient(message.connection ?? snapshot.connection);
@@ -295,10 +300,19 @@ async function handleMessage(message: RuntimeMessage): Promise<RuntimeResponse> 
 
 async function buildPopupState(): Promise<PopupState> {
   const snapshot = await loadSnapshot();
-  const client = new Aria2RpcClient(snapshot.connection);
+  return {
+    snapshot,
+    runtime: await buildRuntimeState(snapshot),
+  };
+}
+
+async function buildRuntimeState(snapshot: StorageSnapshot): Promise<RuntimeState> {
+  const client = new Aria2RpcClient({
+    ...snapshot.connection,
+    timeoutMs: Math.min(snapshot.connection.timeoutMs, POPUP_RPC_TIMEOUT_MS),
+  });
   const connection = await client.checkConnection();
   const base = {
-    snapshot,
     connection: { ...connection, checkedAt: Date.now() },
     tasks: { active: [], waiting: [], stopped: [] },
   };

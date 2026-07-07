@@ -3,6 +3,10 @@ import type { Aria2GlobalStat, Aria2Task } from '@/src/lib/rpc';
 
 export interface PopupState {
   snapshot: StorageSnapshot;
+  runtime: RuntimeState;
+}
+
+export interface RuntimeState {
   connection: {
     ok: boolean;
     code?: string;
@@ -21,6 +25,8 @@ export interface PopupState {
 
 export type RuntimeMessage =
   | { type: 'popup-state' }
+  | { type: 'runtime-state' }
+  | { type: 'settings-snapshot' }
   | { type: 'test-connection'; connection?: ConnectionConfig }
   | { type: 'update-settings'; patch: Partial<DownloadSettings> }
   | { type: 'update-connection'; patch: Partial<ConnectionConfig> }
@@ -37,5 +43,5 @@ export type RuntimeMessage =
   | { type: 'replace-snapshot'; snapshot: StorageSnapshot };
 
 export type RuntimeResponse =
-  | { ok: true; state?: PopupState; snapshot?: StorageSnapshot; diagnostics?: DiagnosticEvent[]; result?: unknown }
+  | { ok: true; state?: PopupState; runtime?: RuntimeState; snapshot?: StorageSnapshot; diagnostics?: DiagnosticEvent[]; result?: unknown }
   | { ok: false; code: string; message: string };

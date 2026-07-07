@@ -4,12 +4,10 @@ export function StatusDot({ ok, checking = false }: { ok: boolean; checking?: bo
   return (
     <span
       className={cn(
-        'relative inline-flex size-2.5 rounded-full',
+        'relative inline-flex size-2.5 rounded-full ring-2 ring-background',
         ok ? 'bg-task-active' : 'bg-destructive',
         checking && 'bg-task-waiting',
       )}
-    >
-      {ok ? <span className="absolute inset-0 animate-ping rounded-full bg-task-active/45" /> : null}
-    </span>
+    />
   );
 }

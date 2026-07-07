@@ -60,8 +60,8 @@ export default function App() {
   }, []);
 
   const refresh = async () => {
-    const response = await sendRuntimeMessage({ type: 'popup-state' });
-    if (response.ok && response.state) setSnapshot(response.state.snapshot);
+    const response = await sendRuntimeMessage({ type: 'settings-snapshot' });
+    if (response.ok && response.snapshot) setSnapshot(response.snapshot);
   };
 
   const persistConnection = async () => {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Activity,
   Gauge,
@@ -12,9 +12,10 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
-import type { PopupState } from '@/src/lib/messages';
+import type { RuntimeState } from '@/src/lib/messages';
 import type { Locale } from '@/src/lib/i18n/dictionaries';
 import { localeLabels } from '@/src/lib/i18n/dictionaries';
+import { DEFAULT_STORAGE, type StorageSnapshot } from '@/src/lib/storage';
 import { sendRuntimeMessage } from '@/src/lib/runtime';
 import { useI18n } from '@/src/hooks/use-i18n';
 import { useTheme } from '@/src/hooks/use-theme';
@@ -23,7 +24,6 @@ import { Button } from '@/src/components/ui/button';
 import { Badge } from '@/src/components/ui/badge';
 import { Input } from '@/src/components/ui/input';
 import { ScrollArea } from '@/src/components/ui/scroll-area';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select';
 import { Separator } from '@/src/components/ui/separator';
 import { Switch } from '@/src/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs';
@@ -31,51 +31,78 @@ import { TaskRow } from '@/src/components/motrix/task-row';
 import { StatusDot } from '@/src/components/motrix/status-dot';
 import { cn, formatSpeed } from '@/src/lib/utils';
 
-const REFRESH_MS = 2500;
+const REFRESH_MS = 5000;
 
 export default function App() {
-  const [state, setState] = useState<PopupState | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [snapshot, setSnapshot] = useState<StorageSnapshot>(DEFAULT_STORAGE);
+  const [runtime, setRuntime] = useState<RuntimeState | null>(null);
+  const [runtimeLoading, setRuntimeLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [url, setUrl] = useState('');
-  const locale = state?.snapshot.ui.locale ?? 'zh-CN';
+  const refreshInFlightRef = useRef(false);
+  const locale = snapshot.ui.locale;
   const { t } = useI18n(locale);
-  useTheme(state?.snapshot.ui);
-  const revealRef = useAnimeReveal<HTMLDivElement>(state?.snapshot.ui.motion ?? true, state?.connection.checkedAt);
+  useTheme(snapshot.ui);
+  const revealRef = useAnimeReveal<HTMLDivElement>(snapshot.ui.motion, 'popup-open');
 
-  const refresh = useCallback(async (quiet = false) => {
-    if (!quiet) setLoading(true);
-    const response = await sendRuntimeMessage({ type: 'popup-state' });
-    if (response.ok && response.state) setState(response.state);
-    if (!quiet) setLoading(false);
+  const refreshRuntime = useCallback(async (quiet = false) => {
+    if (refreshInFlightRef.current) return;
+    refreshInFlightRef.current = true;
+    if (!quiet) setRuntimeLoading(true);
+    try {
+      const response = await sendRuntimeMessage({ type: 'runtime-state' });
+      if (response.ok && response.runtime) setRuntime(response.runtime);
+    } finally {
+      refreshInFlightRef.current = false;
+      if (!quiet) setRuntimeLoading(false);
+    }
+  }, []);
+
+  const refreshSnapshot = useCallback(async () => {
+    const response = await sendRuntimeMessage({ type: 'settings-snapshot' });
+    if (response.ok && response.snapshot) setSnapshot(response.snapshot);
   }, []);
 
   useEffect(() => {
-    void refresh();
+    void refreshSnapshot();
+    const initialRuntimeTimer = globalThis.setTimeout(() => {
+      void refreshRuntime();
+    }, 0);
     const timer = globalThis.setInterval(() => {
-      void refresh(true);
+      void refreshRuntime(true);
     }, REFRESH_MS);
-    return () => globalThis.clearInterval(timer);
-  }, [refresh]);
+    return () => {
+      globalThis.clearTimeout(initialRuntimeTimer);
+      globalThis.clearInterval(timer);
+    };
+  }, [refreshRuntime, refreshSnapshot]);
 
   const updateInterception = async (enabled: boolean) => {
+    setSnapshot((current) => ({
+      ...current,
+      settings: { ...current.settings, enabled },
+    }));
     const response = await sendRuntimeMessage({ type: 'update-settings', patch: { enabled } });
     if (response.ok) {
-      await refresh(true);
+      if (response.snapshot) setSnapshot(response.snapshot);
       toast.success(enabled ? t('popup.captureOn') : t('popup.captureOff'));
     }
   };
 
   const updateLocale = async (nextLocale: Locale) => {
+    setSnapshot((current) => ({
+      ...current,
+      ui: { ...current.ui, locale: nextLocale },
+    }));
     const response = await sendRuntimeMessage({ type: 'update-ui', patch: { locale: nextLocale } });
-    if (response.ok) await refresh(true);
+    if (response.ok && response.snapshot) setSnapshot(response.snapshot);
   };
 
   const runAction = async (label: string, action: () => Promise<unknown>) => {
     setBusy(true);
     try {
       await action();
-      await refresh(true);
+      await refreshRuntime(true);
       toast.success(label);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : String(error));
@@ -100,11 +127,11 @@ export default function App() {
 
   const counts = useMemo(
     () => ({
-      active: state?.tasks.active.length ?? 0,
-      waiting: state?.tasks.waiting.length ?? 0,
-      stopped: state?.tasks.stopped.length ?? 0,
+      active: runtime?.tasks.active.length ?? 0,
+      waiting: runtime?.tasks.waiting.length ?? 0,
+      stopped: runtime?.tasks.stopped.length ?? 0,
     }),
-    [state],
+    [runtime?.tasks.active.length, runtime?.tasks.waiting.length, runtime?.tasks.stopped.length],
   );
 
   return (
@@ -124,19 +151,21 @@ export default function App() {
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-1">
-            <Select value={locale} onValueChange={(value) => void updateLocale(value as Locale)}>
-              <SelectTrigger className="h-8 w-[104px] border-0 bg-muted px-2 text-xs">
-                <Languages className="mr-1 size-3.5" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
+            <label className="relative flex h-8 w-[112px] items-center rounded-md bg-muted px-2 text-xs text-foreground focus-within:ring-2 focus-within:ring-ring">
+              <Languages className="mr-1 size-3.5 shrink-0 text-muted-foreground" />
+              <select
+                value={locale}
+                onChange={(event) => void updateLocale(event.target.value as Locale)}
+                className="min-w-0 flex-1 appearance-none bg-transparent text-xs outline-none"
+                aria-label="Language"
+              >
                 {Object.entries(localeLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
+                  <option key={value} value={value}>
                     {label}
-                  </SelectItem>
+                  </option>
                 ))}
-              </SelectContent>
-            </Select>
+              </select>
+            </label>
             <Button variant="quiet" size="icon" onClick={openOptions} title={t('common.settings')}>
               <Settings />
             </Button>
@@ -149,20 +178,20 @@ export default function App() {
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <StatusDot ok={Boolean(state?.connection.ok)} checking={loading} />
+                <StatusDot ok={Boolean(runtime?.connection.ok)} checking={runtimeLoading} />
                 <span className="text-sm font-medium">
-                  {state?.connection.ok ? t('status.online') : t('status.offline')}
+                  {runtime?.connection.ok ? t('status.online') : t('status.offline')}
                 </span>
-                {state?.connection.version ? <Badge variant="secondary">aria2 {state.connection.version}</Badge> : null}
+                {runtime?.connection.version ? <Badge variant="secondary">aria2 {runtime.connection.version}</Badge> : null}
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
-                {state?.connection.ok
-                  ? t('popup.rpcLatency', { ms: state.connection.latencyMs ?? 0 })
-                  : t('popup.connectionHint', { port: state?.snapshot.connection.port ?? 16800 })}
+                {runtime?.connection.ok
+                  ? t('popup.rpcLatency', { ms: runtime.connection.latencyMs ?? 0 })
+                  : t('popup.connectionHint', { port: snapshot.connection.port })}
               </p>
             </div>
-            <Button variant="outline" size="sm" disabled={loading} onClick={() => void refresh()}>
-              <RefreshCw className={cn(loading && 'animate-spin')} />
+            <Button variant="outline" size="sm" disabled={runtimeLoading} onClick={() => void refreshRuntime()}>
+              <RefreshCw className={cn(runtimeLoading && 'animate-spin')} />
               {t('common.retry')}
             </Button>
           </div>
@@ -175,7 +204,7 @@ export default function App() {
               {t('popup.downloadSpeed')}
             </div>
             <div className="metric-font mt-1 text-lg font-semibold text-speed-download">
-              {formatSpeed(state?.stat?.downloadSpeed)}
+              {formatSpeed(runtime?.stat?.downloadSpeed)}
             </div>
           </div>
           <div className="rounded-lg border bg-card p-3">
@@ -184,7 +213,7 @@ export default function App() {
               {t('popup.uploadSpeed')}
             </div>
             <div className="metric-font mt-1 text-lg font-semibold text-speed-upload">
-              {formatSpeed(state?.stat?.uploadSpeed)}
+              {formatSpeed(runtime?.stat?.uploadSpeed)}
             </div>
           </div>
         </section>
@@ -196,12 +225,12 @@ export default function App() {
               <div>
                 <div className="text-sm font-medium">{t('popup.interception')}</div>
                 <div className="text-xs text-muted-foreground">
-                  {state?.snapshot.settings.enabled ? t('popup.captureOn') : t('popup.captureOff')}
+                  {snapshot.settings.enabled ? t('popup.captureOn') : t('popup.captureOff')}
                 </div>
               </div>
             </div>
             <Switch
-              checked={Boolean(state?.snapshot.settings.enabled)}
+              checked={snapshot.settings.enabled}
               onCheckedChange={(checked) => void updateInterception(checked)}
             />
           </div>
@@ -241,7 +270,7 @@ export default function App() {
             </div>
             <TaskList
               value="active"
-              tasks={state?.tasks.active ?? []}
+              tasks={runtime?.tasks.active ?? []}
               empty={t('popup.noTasks')}
               onPause={(gid) => void runAction(t('common.pause'), () => sendRuntimeMessage({ type: 'task-action', action: 'pause', gid }))}
               onResume={(gid) => void runAction(t('common.resume'), () => sendRuntimeMessage({ type: 'task-action', action: 'resume', gid }))}
@@ -249,7 +278,7 @@ export default function App() {
             />
             <TaskList
               value="waiting"
-              tasks={state?.tasks.waiting ?? []}
+              tasks={runtime?.tasks.waiting ?? []}
               empty={t('popup.noTasks')}
               onPause={(gid) => void runAction(t('common.pause'), () => sendRuntimeMessage({ type: 'task-action', action: 'pause', gid }))}
               onResume={(gid) => void runAction(t('common.resume'), () => sendRuntimeMessage({ type: 'task-action', action: 'resume', gid }))}
@@ -257,7 +286,7 @@ export default function App() {
             />
             <TaskList
               value="stopped"
-              tasks={state?.tasks.stopped ?? []}
+              tasks={runtime?.tasks.stopped ?? []}
               empty={t('popup.noTasks')}
               onPause={(gid) => void runAction(t('common.pause'), () => sendRuntimeMessage({ type: 'task-action', action: 'pause', gid }))}
               onResume={(gid) => void runAction(t('common.resume'), () => sendRuntimeMessage({ type: 'task-action', action: 'resume', gid }))}
@@ -309,7 +338,7 @@ function TaskList({
   onRemove,
 }: {
   value: string;
-  tasks: PopupState['tasks']['active'];
+  tasks: RuntimeState['tasks']['active'];
   empty: string;
   onPause: (gid: string) => void;
   onResume: (gid: string) => void;
