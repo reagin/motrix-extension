@@ -1,6 +1,6 @@
 import type { RuntimeResponse } from '@/src/lib/messages';
 
-const PROTOCOL_PATTERN = /^(magnet|ed2k|thunder):/i;
+const PROTOCOL_PATTERN = /^(?:magnet|ed2k|thunder):/i;
 
 export default defineContentScript({
   matches: ['http://*/*', 'https://*/*'],

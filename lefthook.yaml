@@ -1,0 +1,5 @@
+pre-commit:
+  commands:
+    eslint-repair:
+      run: pnpm run lint:eslint
+      stage_fixed: true

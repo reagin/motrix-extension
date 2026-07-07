@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+
 import type { UiPrefs } from '@/src/lib/storage';
 
 export function useTheme(ui: UiPrefs | undefined) {

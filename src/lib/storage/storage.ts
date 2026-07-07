@@ -1,11 +1,11 @@
 import {
-  DEFAULT_STORAGE,
-  StorageSnapshotSchema,
   type ConnectionConfig,
+  DEFAULT_STORAGE,
   type DiagnosticEvent,
   type DownloadSettings,
   type SiteRule,
   type StorageSnapshot,
+  StorageSnapshotSchema,
   type UiPrefs,
 } from './schema';
 

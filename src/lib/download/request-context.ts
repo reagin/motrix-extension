@@ -6,8 +6,8 @@ export interface RequestHeader {
 export interface RequestContext {
   url: string;
   time: number;
-  referer?: string;
   cookie?: string;
+  referer?: string;
   userAgent?: string;
   requestHeaders: RequestHeader[];
 }

@@ -2,18 +2,18 @@ import type { DownloadSettings, SiteRule } from '@/src/lib/storage';
 
 export interface DownloadCandidate {
   url: string;
-  finalUrl?: string;
-  filename?: string;
-  fileSize?: number;
-  totalBytes?: number;
   mime?: string;
   tabUrl?: string;
+  filename?: string;
+  fileSize?: number;
+  finalUrl?: string;
+  totalBytes?: number;
   byExtensionId?: string;
 }
 
 export interface FilterResult {
-  intercept: boolean;
   reason: string;
+  intercept: boolean;
 }
 
 export function shouldInterceptDownload(

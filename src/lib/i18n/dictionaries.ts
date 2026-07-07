@@ -16,8 +16,8 @@ export const localeLabels: Record<Locale, string> = {
 
 export interface LocaleDisplayEntry {
   id: Locale;
-  endonym: string;
   exonym: string;
+  endonym: string;
   description: string;
 }
 

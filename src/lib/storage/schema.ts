@@ -1,15 +1,16 @@
-import { z } from "zod";
-import type { Locale } from "@/src/lib/i18n/dictionaries";
+import { z } from 'zod';
 
-export const ThemeSchema = z.enum(["system", "light", "dark"]);
-export const LocaleSchema = z.preprocess((value) => (value === "en" ? "en-US" : value), z.enum(["en-US", "zh-CN"]));
-export const DensitySchema = z.enum(["comfortable", "compact"]);
+import type { Locale } from '@/src/lib/i18n/dictionaries';
+
+export const ThemeSchema = z.enum(['system', 'light', 'dark']);
+export const LocaleSchema = z.preprocess((value) => (value === 'en' ? 'en-US' : value), z.enum(['en-US', 'zh-CN']));
+export const DensitySchema = z.enum(['comfortable', 'compact']);
 
 export const ConnectionConfigSchema = z.object({
-  host: z.string().min(1).default("127.0.0.1"),
+  host: z.string().min(1).default('127.0.0.1'),
   port: z.coerce.number().int().min(1).max(65535).default(16800),
-  path: z.string().min(1).default("/jsonrpc"),
-  secret: z.string().default(""),
+  path: z.string().min(1).default('/jsonrpc'),
+  secret: z.string().default(''),
   timeoutMs: z.coerce.number().int().min(500).max(30000).default(5000),
 });
 
@@ -26,26 +27,26 @@ export const DownloadSettingsSchema = z.object({
   minFileSizeBytes: z.coerce.number().int().min(0).default(0),
   blockedExtensions: z.array(z.string()).default([]),
   allowedExtensions: z.array(z.string()).default([]),
-  defaultDir: z.string().default(""),
+  defaultDir: z.string().default(''),
 });
 
 export const SiteRuleSchema = z.object({
   id: z.string(),
   pattern: z.string(),
-  action: z.enum(["allow", "block"]),
+  action: z.enum(['allow', 'block']),
   enabled: z.boolean().default(true),
 });
 
 export const UiPrefsSchema = z.object({
-  locale: LocaleSchema.default("zh-CN"),
-  theme: ThemeSchema.default("system"),
-  density: DensitySchema.default("comfortable"),
+  locale: LocaleSchema.default('zh-CN'),
+  theme: ThemeSchema.default('system'),
+  density: DensitySchema.default('comfortable'),
   motion: z.boolean().default(true),
 });
 
 export const DiagnosticEventSchema = z.object({
   id: z.string(),
-  level: z.enum(["info", "warn", "error"]),
+  level: z.enum(['info', 'warn', 'error']),
   code: z.string(),
   message: z.string(),
   timestamp: z.number(),

@@ -1,7 +1,7 @@
 export interface FilenameMetadata {
   url: string;
-  filename: string;
   time: number;
+  filename: string;
 }
 
 export class FilenameMetadataStore {

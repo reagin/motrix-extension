@@ -1,12 +1,7 @@
 import { z } from 'zod';
+
 import type { ConnectionConfig } from '@/src/lib/storage';
-import {
-  RpcAuthError,
-  RpcConnectionError,
-  RpcError,
-  RpcInvalidResponseError,
-  RpcTimeoutError,
-} from './errors';
+
 import type {
   AddDownloadInput,
   AddUriOptions,
@@ -15,6 +10,14 @@ import type {
   Aria2Version,
   ConnectionCheck,
 } from './types';
+
+import {
+  RpcAuthError,
+  RpcConnectionError,
+  RpcError,
+  RpcInvalidResponseError,
+  RpcTimeoutError,
+} from './errors';
 
 const RpcSuccessSchema = z.object({
   jsonrpc: z.string().optional(),

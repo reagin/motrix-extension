@@ -1,9 +1,9 @@
 export interface Aria2GlobalStat {
-  downloadSpeed: string;
-  uploadSpeed: string;
   numActive: string;
-  numWaiting: string;
   numStopped: string;
+  numWaiting: string;
+  uploadSpeed: string;
+  downloadSpeed: string;
   numStoppedTotal: string;
 }
 
@@ -12,28 +12,33 @@ export interface Aria2Version {
   enabledFeatures: string[];
 }
 
-export type Aria2TaskStatus =
-  | 'active'
-  | 'waiting'
-  | 'paused'
-  | 'error'
-  | 'complete'
-  | 'removed';
+export type Aria2TaskStatus
+  = | 'active'
+    | 'waiting'
+    | 'paused'
+    | 'error'
+    | 'complete'
+    | 'removed';
 
 export interface Aria2Task {
   gid: string;
-  status: Aria2TaskStatus;
-  totalLength: string;
-  completedLength: string;
-  uploadLength?: string;
-  downloadSpeed: string;
-  uploadSpeed: string;
-  connections?: string;
-  numSeeders?: string;
+  dir?: string;
   seeder?: string;
   errorCode?: string;
+  numSeeders?: string;
+  totalLength: string;
+  uploadSpeed: string;
+  connections?: string;
+  downloadSpeed: string;
   errorMessage?: string;
-  dir?: string;
+  uploadLength?: string;
+  completedLength: string;
+  status: Aria2TaskStatus;
+  bittorrent?: {
+    info?: {
+      name?: string;
+    };
+  };
   files?: Array<{
     index: string;
     path: string;
@@ -42,36 +47,31 @@ export interface Aria2Task {
     selected: string;
     uris?: Array<{ status: string; uri: string }>;
   }>;
-  bittorrent?: {
-    info?: {
-      name?: string;
-    };
-  };
 }
 
 export interface AddUriOptions {
-  dir?: string;
-  out?: string;
-  referer?: string;
-  header?: string[];
+  'dir'?: string;
+  'out'?: string;
+  'referer'?: string;
+  'header'?: string[];
   'user-agent'?: string;
 }
 
 export interface AddDownloadInput {
   url: string;
-  finalUrl?: string;
-  filename?: string;
-  referer?: string;
+  dir?: string;
   cookie?: string;
+  referer?: string;
+  filename?: string;
+  finalUrl?: string;
   userAgent?: string;
   requestHeaders?: Array<{ name: string; value: string }>;
-  dir?: string;
 }
 
 export interface ConnectionCheck {
   ok: boolean;
-  version?: string;
-  latencyMs?: number;
   code?: string;
   message: string;
+  version?: string;
+  latencyMs?: number;
 }

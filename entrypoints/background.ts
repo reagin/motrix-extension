@@ -1,35 +1,36 @@
-import { Aria2RpcClient, RpcAuthError } from '@/src/lib/rpc';
 import type { AddDownloadInput } from '@/src/lib/rpc';
+import type { PopupState, RuntimeMessage, RuntimeResponse, RuntimeState } from '@/src/lib/messages';
+
+import { Aria2RpcClient, RpcAuthError } from '@/src/lib/rpc';
+import { DuplicateGuard } from '@/src/lib/download/duplicate-guard';
+import { RequestContextStore } from '@/src/lib/download/request-context';
+import { openMotrixNewTask, wakeMotrix } from '@/src/lib/protocol/launcher';
+import { isProtocolEnabled, shouldInterceptDownload } from '@/src/lib/download/filter';
+import { filenameFromUrl, FilenameMetadataStore, sanitizeFilename } from '@/src/lib/download/filename-metadata';
 import {
   appendDiagnostic,
   clearDiagnostics,
   DEFAULT_STORAGE,
   loadSnapshot,
-  saveSnapshot,
   saveSiteRules,
+  saveSnapshot,
+  type StorageSnapshot,
   updateConnection,
   updateSettings,
   updateUi,
-  type StorageSnapshot,
 } from '@/src/lib/storage';
-import type { RuntimeMessage, RuntimeResponse, PopupState, RuntimeState } from '@/src/lib/messages';
-import { shouldInterceptDownload, isProtocolEnabled } from '@/src/lib/download/filter';
-import { RequestContextStore } from '@/src/lib/download/request-context';
-import { FilenameMetadataStore, filenameFromUrl, sanitizeFilename } from '@/src/lib/download/filename-metadata';
-import { DuplicateGuard } from '@/src/lib/download/duplicate-guard';
-import { openMotrixNewTask, wakeMotrix } from '@/src/lib/protocol/launcher';
 
 interface DownloadItem {
   id: number;
   url: string;
-  finalUrl?: string;
+  mime?: string;
+  state?: string;
   filename?: string;
   fileSize?: number;
-  totalBytes?: number;
-  mime?: string;
-  byExtensionId?: string;
-  state?: string;
+  finalUrl?: string;
   referrer?: string;
+  totalBytes?: number;
+  byExtensionId?: string;
 }
 
 const requestContexts = new RequestContextStore();
@@ -228,7 +229,6 @@ async function routeDownloadInput(
       message: `Routed to Motrix after wake: ${input.finalUrl || input.url}`,
       context: { source, gid: result.gid },
     });
-    return;
   } catch (error) {
     await appendDiagnostic({
       level: 'warn',
