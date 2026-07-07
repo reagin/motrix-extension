@@ -26,7 +26,7 @@ import { Separator } from '@/src/components/ui/separator';
 import { Switch } from '@/src/components/ui/switch';
 import { Textarea } from '@/src/components/ui/textarea';
 import { StatusDot } from '@/src/components/motrix/status-dot';
-import { localeLabels, type Locale } from '@/src/lib/i18n/dictionaries';
+import { localeDisplayEntries, type Locale } from '@/src/lib/i18n/dictionaries';
 import { parseRpcUrl } from '@/src/lib/rpc';
 import { DEFAULT_STORAGE, StorageSnapshotSchema, type SiteRule, type StorageSnapshot } from '@/src/lib/storage';
 import { sendRuntimeMessage } from '@/src/lib/runtime';
@@ -327,13 +327,33 @@ export default function App() {
 
           {active === 'language' ? (
             <Section title={t('options.language')} icon={Languages}>
-              <div className="grid max-w-md gap-4">
-                <Field label={t('options.language')}>
-                  <Select value={snapshot.ui.locale} onValueChange={(locale) => void persistUi({ ...snapshot.ui, locale: locale as Locale })}>
-                    <SelectTrigger><Languages className="mr-2 size-4" /><SelectValue /></SelectTrigger>
-                    <SelectContent>{Object.entries(localeLabels).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent>
-                  </Select>
-                </Field>
+              <div className="flex max-w-xl flex-col gap-1.5">
+                {localeDisplayEntries.map((entry) => {
+                  const activeLocale = snapshot.ui.locale === entry.id;
+                  const label = entry.endonym === entry.exonym ? entry.endonym : `${entry.endonym} / ${entry.exonym}`;
+                  return (
+                    <button
+                      key={entry.id}
+                      type="button"
+                      onClick={() => void persistUi({ ...snapshot.ui, locale: entry.id })}
+                      className={cn(
+                        'flex w-full items-center gap-3 rounded-[10px] border px-4 py-3 text-left transition-[background-color,border-color,box-shadow,color]',
+                        activeLocale
+                          ? 'border-primary bg-[var(--m3-primary-container)] text-[var(--m3-on-primary-container)] shadow-[0_0_0_1px_hsl(var(--primary))]'
+                          : 'border-[var(--m3-outline-variant)] bg-transparent hover:bg-[var(--m3-surface-container-high)]',
+                      )}
+                    >
+                      <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,hsl(var(--primary))_12%,transparent)] text-primary">
+                        <Languages className="size-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-medium">{label}</div>
+                        <div className="mt-0.5 text-xs opacity-65">{entry.description}</div>
+                      </div>
+                      {activeLocale ? <CheckCircle2 className="size-[18px] shrink-0 text-primary" /> : null}
+                    </button>
+                  );
+                })}
               </div>
             </Section>
           ) : null}

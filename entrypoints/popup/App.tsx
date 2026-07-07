@@ -1,15 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Activity,
-  AlertCircle,
   ArrowDown,
   ArrowUp,
   CheckCircle2,
   Clock,
-  Languages,
   Pause,
   Play,
-  Plus,
   Power,
   RefreshCw,
   Settings,
@@ -17,8 +14,6 @@ import {
 } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import type { RuntimeState } from '@/src/lib/messages';
-import type { Locale } from '@/src/lib/i18n/dictionaries';
-import { localeLabels } from '@/src/lib/i18n/dictionaries';
 import { DEFAULT_STORAGE, type StorageSnapshot } from '@/src/lib/storage';
 import { sendRuntimeMessage } from '@/src/lib/runtime';
 import { useI18n } from '@/src/hooks/use-i18n';
@@ -26,7 +21,6 @@ import { useTheme } from '@/src/hooks/use-theme';
 import { useAnimeReveal } from '@/src/hooks/use-anime-reveal';
 import { Button } from '@/src/components/ui/button';
 import { Badge } from '@/src/components/ui/badge';
-import { Input } from '@/src/components/ui/input';
 import { ScrollArea } from '@/src/components/ui/scroll-area';
 import { Separator } from '@/src/components/ui/separator';
 import { Switch } from '@/src/components/ui/switch';
@@ -42,7 +36,6 @@ export default function App() {
   const [runtime, setRuntime] = useState<RuntimeState | null>(null);
   const [runtimeLoading, setRuntimeLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [url, setUrl] = useState('');
   const refreshInFlightRef = useRef(false);
   const locale = snapshot.ui.locale;
   const { t } = useI18n(locale);
@@ -89,17 +82,7 @@ export default function App() {
     const response = await sendRuntimeMessage({ type: 'update-settings', patch: { enabled } });
     if (response.ok) {
       if (response.snapshot) setSnapshot(response.snapshot);
-      toast.success(enabled ? t('popup.captureOn') : t('popup.captureOff'));
     }
-  };
-
-  const updateLocale = async (nextLocale: Locale) => {
-    setSnapshot((current) => ({
-      ...current,
-      ui: { ...current.ui, locale: nextLocale },
-    }));
-    const response = await sendRuntimeMessage({ type: 'update-ui', patch: { locale: nextLocale } });
-    if (response.ok && response.snapshot) setSnapshot(response.snapshot);
   };
 
   const runAction = async (label: string, action: () => Promise<unknown>) => {
@@ -113,16 +96,6 @@ export default function App() {
     } finally {
       setBusy(false);
     }
-  };
-
-  const addTask = async () => {
-    const trimmed = url.trim();
-    if (!trimmed) return;
-    await runAction(t('popup.sent'), async () => {
-      const response = await sendRuntimeMessage({ type: 'add-url', url: trimmed });
-      if (!response.ok) throw new Error(response.message);
-      setUrl('');
-    });
   };
 
   const openOptions = () => {
@@ -189,141 +162,116 @@ export default function App() {
 
       <div ref={revealRef}>
         {!isConnected ? (
-          <section data-reveal className="mx-4 mb-2 flex items-start gap-2.5 rounded-[10px] border border-[color-mix(in_srgb,hsl(var(--destructive))_20%,transparent)] bg-[color-mix(in_srgb,hsl(var(--destructive))_6%,transparent)] px-3 py-2.5">
-            <AlertCircle className="mt-0.5 size-4 shrink-0 text-destructive" />
-            <div className="min-w-0">
-              <p className="text-xs font-semibold text-destructive">{t('status.offline')}</p>
-              <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
-                {t('popup.connectionHint', { port: snapshot.connection.port })}
-              </p>
+          <section
+            data-reveal
+            className="mx-3 mb-3 overflow-hidden rounded-xl border bg-[var(--m3-surface-container)] shadow-[var(--m3-shadow-card)]"
+          >
+            <div className="flex">
+              <div className="w-1 shrink-0 bg-[var(--m3-warning)]" />
+              <div className="min-w-0 px-3.5 py-3">
+                <p className="text-[13px] font-semibold leading-tight">{t('status.offline')}</p>
+                <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                  {t('popup.connectionHint', { port: snapshot.connection.port })}
+                </p>
+              </div>
             </div>
           </section>
-        ) : null}
+        ) : (
+          <>
+            <section data-reveal className={cn('px-4 transition-opacity duration-300', isIdle && 'opacity-75')}>
+              <div className="flex items-center justify-center py-[18px] pb-3.5">
+                <div className="flex flex-1 items-center justify-center gap-1.5 text-primary">
+                  <ArrowDown className="size-4 shrink-0" />
+                  <span className="metric-font text-[22px] font-bold tracking-[-0.02em]">
+                    {formatSpeed(runtime?.stat?.downloadSpeed)}
+                  </span>
+                </div>
+                <div className="h-6 w-px shrink-0 bg-border" />
+                <div className="flex flex-1 items-center justify-center gap-1.5 text-muted-foreground">
+                  <ArrowUp className="size-3.5 shrink-0" />
+                  <span className="metric-font text-sm font-medium">{formatSpeed(runtime?.stat?.uploadSpeed)}</span>
+                </div>
+              </div>
+              <div className={cn('flex items-center justify-around border-t py-2.5 transition-opacity duration-300', !snapshot.settings.enabled && 'opacity-35')}>
+                <StatCount icon={Zap} label={t('common.active')} value={counts.active} className="text-primary" />
+                <StatCount icon={Clock} label={t('common.waiting')} value={counts.waiting} className="text-[var(--m3-warning)]" />
+                <StatCount icon={CheckCircle2} label={t('common.stopped')} value={counts.stopped} className="text-[var(--m3-success)]" />
+              </div>
+            </section>
 
-        <section data-reveal className={cn('px-4 transition-opacity duration-300', isIdle && 'opacity-45')}>
-          <div className="flex items-center justify-center py-[18px] pb-3.5">
-            <div className="flex flex-1 items-center justify-center gap-1.5 text-primary">
-              <ArrowDown className="size-4 shrink-0" />
-              <span className="metric-font text-[22px] font-bold tracking-[-0.02em]">
-                {formatSpeed(runtime?.stat?.downloadSpeed)}
-              </span>
-            </div>
-            <div className="h-6 w-px shrink-0 bg-border" />
-            <div className="flex flex-1 items-center justify-center gap-1.5 text-muted-foreground">
-              <ArrowUp className="size-3.5 shrink-0" />
-              <span className="metric-font text-sm font-medium">{formatSpeed(runtime?.stat?.uploadSpeed)}</span>
-            </div>
-          </div>
-          <div className={cn('flex items-center justify-around border-t py-2.5 transition-opacity duration-300', !snapshot.settings.enabled && 'opacity-35')}>
-            <StatCount icon={Zap} label={t('common.active')} value={counts.active} className="text-primary" />
-            <StatCount icon={Clock} label={t('common.waiting')} value={counts.waiting} className="text-[var(--m3-warning)]" />
-            <StatCount icon={CheckCircle2} label={t('common.stopped')} value={counts.stopped} className="text-[var(--m3-success)]" />
-          </div>
-        </section>
+            <section data-reveal className="mx-3 mt-2 rounded-xl border bg-[var(--m3-surface-container)] p-2.5 shadow-[var(--m3-shadow-card)]">
+              <Tabs defaultValue="active">
+                <div className="flex items-center justify-between gap-2">
+                  <TabsList className="grid h-8 flex-1 grid-cols-3 bg-[var(--m3-surface-container-high)]">
+                    <TabsTrigger value="active">
+                      {t('common.active')} <span className="ml-1 text-xs text-muted-foreground">{counts.active}</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="waiting">
+                      {t('common.waiting')} <span className="ml-1 text-xs text-muted-foreground">{counts.waiting}</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="stopped">
+                      {t('common.stopped')} <span className="ml-1 text-xs text-muted-foreground">{counts.stopped}</span>
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+                <TaskList
+                  value="active"
+                  tasks={runtime?.tasks.active ?? []}
+                  empty={t('popup.noTasks')}
+                  onPause={(gid) => void runAction(t('common.pause'), () => sendRuntimeMessage({ type: 'task-action', action: 'pause', gid }))}
+                  onResume={(gid) => void runAction(t('common.resume'), () => sendRuntimeMessage({ type: 'task-action', action: 'resume', gid }))}
+                  onRemove={(gid) => void runAction(t('common.remove'), () => sendRuntimeMessage({ type: 'task-action', action: 'remove', gid }))}
+                />
+                <TaskList
+                  value="waiting"
+                  tasks={runtime?.tasks.waiting ?? []}
+                  empty={t('popup.noTasks')}
+                  onPause={(gid) => void runAction(t('common.pause'), () => sendRuntimeMessage({ type: 'task-action', action: 'pause', gid }))}
+                  onResume={(gid) => void runAction(t('common.resume'), () => sendRuntimeMessage({ type: 'task-action', action: 'resume', gid }))}
+                  onRemove={(gid) => void runAction(t('common.remove'), () => sendRuntimeMessage({ type: 'task-action', action: 'remove', gid }))}
+                />
+                <TaskList
+                  value="stopped"
+                  tasks={runtime?.tasks.stopped ?? []}
+                  empty={t('popup.noTasks')}
+                  onPause={(gid) => void runAction(t('common.pause'), () => sendRuntimeMessage({ type: 'task-action', action: 'pause', gid }))}
+                  onResume={(gid) => void runAction(t('common.resume'), () => sendRuntimeMessage({ type: 'task-action', action: 'resume', gid }))}
+                  onRemove={(gid) => void runAction(t('common.remove'), () => sendRuntimeMessage({ type: 'task-action', action: 'remove', gid }))}
+                />
+              </Tabs>
+            </section>
 
-        <section data-reveal className="mx-3 mt-2 rounded-xl border bg-[var(--m3-surface-container)] p-2.5 shadow-[var(--m3-shadow-card)]">
-          <div className="flex gap-2">
-            <label className="relative flex h-9 w-[92px] shrink-0 items-center rounded-md border bg-[var(--m3-surface)] px-2 text-xs text-foreground focus-within:ring-2 focus-within:ring-ring">
-              <Languages className="mr-1 size-3.5 shrink-0 text-muted-foreground" />
-              <select
-                value={locale}
-                onChange={(event) => void updateLocale(event.target.value as Locale)}
-                className="min-w-0 flex-1 appearance-none bg-transparent text-xs outline-none"
-                aria-label="Language"
+            <Separator className="mt-3" />
+
+            <div data-reveal className="flex items-center justify-between gap-2 px-3 py-3">
+              <Button
+                variant="quiet"
+                size="sm"
+                disabled={busy}
+                onClick={() => void runAction(t('popup.pauseAll'), () => sendRuntimeMessage({ type: 'pause-all' }))}
               >
-                {Object.entries(localeLabels).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <Input
-              value={url}
-              onChange={(event) => setUrl(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') void addTask();
-              }}
-              className="h-9 bg-[var(--m3-surface)] text-xs"
-              placeholder={t('popup.addTaskPlaceholder')}
-            />
-            <Button size="sm" disabled={busy || !url.trim()} onClick={() => void addTask()}>
-              <Plus />
-            </Button>
-          </div>
-        </section>
-
-        <section data-reveal className="mx-3 mt-2 rounded-xl border bg-[var(--m3-surface-container)] p-2.5 shadow-[var(--m3-shadow-card)]">
-          <Tabs defaultValue="active">
-            <div className="flex items-center justify-between gap-2">
-              <TabsList className="grid h-8 flex-1 grid-cols-3 bg-[var(--m3-surface-container-high)]">
-                <TabsTrigger value="active">
-                  {t('common.active')} <span className="ml-1 text-xs text-muted-foreground">{counts.active}</span>
-                </TabsTrigger>
-                <TabsTrigger value="waiting">
-                  {t('common.waiting')} <span className="ml-1 text-xs text-muted-foreground">{counts.waiting}</span>
-                </TabsTrigger>
-                <TabsTrigger value="stopped">
-                  {t('common.stopped')} <span className="ml-1 text-xs text-muted-foreground">{counts.stopped}</span>
-                </TabsTrigger>
-              </TabsList>
+                <Pause />
+                {t('popup.pauseAll')}
+              </Button>
+              <Button
+                variant="quiet"
+                size="sm"
+                disabled={busy}
+                onClick={() => void runAction(t('popup.resumeAll'), () => sendRuntimeMessage({ type: 'resume-all' }))}
+              >
+                <Play />
+                {t('popup.resumeAll')}
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => void runAction(t('common.openMotrix'), () => sendRuntimeMessage({ type: 'wake-motrix' }))}
+              >
+                <Power />
+                {t('common.openMotrix')}
+              </Button>
             </div>
-            <TaskList
-              value="active"
-              tasks={runtime?.tasks.active ?? []}
-              empty={t('popup.noTasks')}
-              onPause={(gid) => void runAction(t('common.pause'), () => sendRuntimeMessage({ type: 'task-action', action: 'pause', gid }))}
-              onResume={(gid) => void runAction(t('common.resume'), () => sendRuntimeMessage({ type: 'task-action', action: 'resume', gid }))}
-              onRemove={(gid) => void runAction(t('common.remove'), () => sendRuntimeMessage({ type: 'task-action', action: 'remove', gid }))}
-            />
-            <TaskList
-              value="waiting"
-              tasks={runtime?.tasks.waiting ?? []}
-              empty={t('popup.noTasks')}
-              onPause={(gid) => void runAction(t('common.pause'), () => sendRuntimeMessage({ type: 'task-action', action: 'pause', gid }))}
-              onResume={(gid) => void runAction(t('common.resume'), () => sendRuntimeMessage({ type: 'task-action', action: 'resume', gid }))}
-              onRemove={(gid) => void runAction(t('common.remove'), () => sendRuntimeMessage({ type: 'task-action', action: 'remove', gid }))}
-            />
-            <TaskList
-              value="stopped"
-              tasks={runtime?.tasks.stopped ?? []}
-              empty={t('popup.noTasks')}
-              onPause={(gid) => void runAction(t('common.pause'), () => sendRuntimeMessage({ type: 'task-action', action: 'pause', gid }))}
-              onResume={(gid) => void runAction(t('common.resume'), () => sendRuntimeMessage({ type: 'task-action', action: 'resume', gid }))}
-              onRemove={(gid) => void runAction(t('common.remove'), () => sendRuntimeMessage({ type: 'task-action', action: 'remove', gid }))}
-            />
-          </Tabs>
-        </section>
-
-        <Separator className="mt-3" />
-
-        <div data-reveal className="flex items-center justify-between gap-2 px-3 py-3">
-          <Button
-            variant="quiet"
-            size="sm"
-            disabled={busy}
-            onClick={() => void runAction(t('popup.pauseAll'), () => sendRuntimeMessage({ type: 'pause-all' }))}
-          >
-            <Pause />
-            {t('popup.pauseAll')}
-          </Button>
-          <Button
-            variant="quiet"
-            size="sm"
-            disabled={busy}
-            onClick={() => void runAction(t('popup.resumeAll'), () => sendRuntimeMessage({ type: 'resume-all' }))}
-          >
-            <Play />
-            {t('popup.resumeAll')}
-          </Button>
-          <Button
-            size="sm"
-            onClick={() => void runAction(t('common.openMotrix'), () => sendRuntimeMessage({ type: 'wake-motrix' }))}
-          >
-            <Power />
-            {t('common.openMotrix')}
-          </Button>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
