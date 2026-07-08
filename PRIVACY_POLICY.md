@@ -12,6 +12,8 @@ Motrix Extension ("the Extension") is a Chrome extension that can intercept brow
 
 The Extension is designed to operate locally. Its runtime network communication is intended for the local RPC endpoint configured by the user, such as `http://127.0.0.1:16800/jsonrpc`.
 
+The use of information received from Chrome extension APIs will adhere to the Chrome Web Store User Data Policy, including the Limited Use requirements.
+
 ## Data Access
 
 The Extension accesses the following data only to provide its download delegation features.
