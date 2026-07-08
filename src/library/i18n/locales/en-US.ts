@@ -54,6 +54,9 @@ export const enUS = {
   options: {
     title: 'Preferences',
     subtitle: 'Tune the browser capture layer and Motrix RPC connection.',
+    navigation: 'Settings navigation',
+    openNavigation: 'Open settings navigation',
+    closeNavigation: 'Close settings navigation',
     skipToContent: 'Skip to settings content',
     connection: 'Connection',
     download: 'Download',

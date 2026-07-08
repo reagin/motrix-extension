@@ -60,6 +60,9 @@ export const zhCN = {
   options: {
     title: '偏好设置',
     subtitle: '调整浏览器下载劫持与 Motrix RPC 连接。',
+    navigation: '设置导航',
+    openNavigation: '打开设置导航',
+    closeNavigation: '关闭设置导航',
     skipToContent: '跳到配置内容',
     connection: '连接',
     download: '下载',

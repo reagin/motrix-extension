@@ -67,9 +67,12 @@ export function ConnectionSection({
             {connectionResult?.message ?? `${snapshot.connection.host}:${snapshot.connection.port}${snapshot.connection.path}`}
           </span>
         </div>
-        <div className='flex gap-2 max-[760px]:justify-end'>
-          <Button variant='outline' onClick={() => void testConnection()}>{t('common.test')}</Button>
-          <Button onClick={() => void persistConnection()}>
+        <div className='grid min-w-64 grid-cols-2 gap-2 max-[760px]:w-full max-[760px]:min-w-0'>
+          <Button className='w-full' variant='outline' onClick={() => void testConnection()}>
+            <Activity />
+            {t('common.test')}
+          </Button>
+          <Button className='w-full' onClick={() => void persistConnection()}>
             <Save />
             {t('common.save')}
           </Button>
