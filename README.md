@@ -55,6 +55,34 @@ To create a ZIP package for Chrome Web Store submission:
 pnpm zip
 ```
 
+### From GitHub Releases
+
+Pre-built ZIP packages are published on the [Releases](https://github.com/reagin/motrix-extension/releases) page.
+
+1. Download the latest `motrix-extension-*-chrome-mv3.zip` asset.
+2. Unzip the archive.
+3. Open `chrome://extensions`, enable **Developer mode**, click **Load unpacked**, and select the extracted folder.
+
+Release tags use the manifest date version format, for example `v2026.07.08.12345`, which matches the extension's `version_name` shown in `chrome://extensions`.
+
+## Releases
+
+### For users
+
+Download the latest ZIP from [GitHub Releases](https://github.com/reagin/motrix-extension/releases) and load the unpacked extension as described above.
+
+### For maintainers
+
+1. Merge the changes you want to ship into the default branch.
+2. Open **Actions** → **Release** → **Run workflow**.
+3. Optionally set custom release notes, or leave them empty to auto-generate from commits.
+4. Optionally enable **draft** or **prerelease**, and choose whether to run ESLint before packaging.
+5. After the workflow completes, verify the new release tag (for example `v2026.07.07.12345`) and attached ZIP on the Releases page.
+
+The workflow packages the Chrome MV3 build with `pnpm zip`, reads `version_name` from the built manifest, and uploads `motrix-extension-*-chrome-mv3.zip` to GitHub Releases. Manifest versions are computed in UTC so local builds and CI releases follow the same rules.
+
+Ensure the repository allows workflow write access under **Settings** → **Actions** → **General** → **Workflow permissions** → **Read and write permissions**.
+
 ## FAQ
 
 ### What is Motrix?

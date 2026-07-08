@@ -9,18 +9,18 @@ function padDatePart(value: number): string {
 }
 
 function getDayBuildNumber(date: Date): number {
-  const elapsedMs = date.getHours() * 3600000
-    + date.getMinutes() * 60000
-    + date.getSeconds() * 1000
-    + date.getMilliseconds();
+  const elapsedMs = date.getUTCHours() * 3600000
+    + date.getUTCMinutes() * 60000
+    + date.getUTCSeconds() * 1000
+    + date.getUTCMilliseconds();
 
   return Math.floor(elapsedMs * CHROME_VERSION_PART_MAX / (MS_PER_DAY - 1));
 }
 
 function getDateVersions(date = new Date()) {
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
+  const year = date.getUTCFullYear();
+  const month = date.getUTCMonth() + 1;
+  const day = date.getUTCDate();
   const buildNumber = getDayBuildNumber(date);
   const displayVersion = [
     year,

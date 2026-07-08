@@ -1,0 +1,109 @@
+name: Publish Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_lint:
+        description: Run ESLint before packaging
+        type: boolean
+        default: true
+      draft:
+        description: Create as draft release
+        type: boolean
+        default: false
+      prerelease:
+        description: Mark as prerelease
+        type: boolean
+        default: false
+      release_notes:
+        description: Optional custom release notes (leave empty to auto-generate from commits)
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        if: inputs.run_lint
+        run: pnpm run lint:eslint
+
+      - name: Package extension
+        run: pnpm zip
+
+      - name: Resolve version and artifact
+        id: artifact
+        run: |
+          set -euo pipefail
+
+          ZIP_PATH=$(ls .output/motrix-extension-*-chrome-mv3.zip | head -1)
+          test -s "$ZIP_PATH"
+
+          MANIFEST_PATH=.output/chrome-mv3/manifest.json
+          VERSION_NAME=$(jq -r .version_name "$MANIFEST_PATH")
+          MANIFEST_VERSION=$(jq -r .version "$MANIFEST_PATH")
+          TAG="v${VERSION_NAME}"
+
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag ${TAG} already exists. Wait for a new build number or delete the existing tag before retrying."
+            exit 1
+          fi
+
+          echo "zip_path=${ZIP_PATH}" >> "$GITHUB_OUTPUT"
+          echo "version_name=${VERSION_NAME}" >> "$GITHUB_OUTPUT"
+          echo "manifest_version=${MANIFEST_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare release notes
+        run: |
+          {
+            if [ -n "${{ inputs.release_notes }}" ]; then
+              printf '%s\n\n' "${{ inputs.release_notes }}"
+            fi
+
+            printf '%s\n' \
+              '## Installation' \
+              '' \
+              '1. Download `motrix-extension-*-chrome-mv3.zip` from the assets below' \
+              '2. Unzip the archive' \
+              '3. Open `chrome://extensions`, enable **Developer mode**,' \
+              '   click **Load unpacked**, and select the extracted folder' \
+              '' \
+              '## Build info' \
+              '' \
+              "- Manifest version: ${{ steps.artifact.outputs.manifest_version }}" \
+              "- Manifest version_name: ${{ steps.artifact.outputs.version_name }}" \
+              "- Commit: ${{ github.sha }}"
+          } > release-notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.artifact.outputs.tag }}
+          name: Motrix Extension ${{ steps.artifact.outputs.version_name }}
+          body_path: release-notes.md
+          files: ${{ steps.artifact.outputs.zip_path }}
+          draft: ${{ inputs.draft }}
+          prerelease: ${{ inputs.prerelease }}
+          generate_release_notes: ${{ inputs.release_notes == '' }}
+          append_body: true
