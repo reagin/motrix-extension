@@ -1,7 +1,6 @@
 import type { RuntimeState } from '@/library/messages';
 
 import { TaskRow } from '@/components/motrix/task-row';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import type { PopupTranslator, TaskLane } from '../types';
 
@@ -11,58 +10,40 @@ interface TaskPanelProps {
   runtime: RuntimeState;
   onPause: (gid: string) => void;
   onResume: (gid: string) => void;
-  onLaneChange: (lane: TaskLane) => void;
   onRemove: (gid: string, status: RuntimeState['tasks']['active'][number]['status']) => void;
 }
-
-const lanes: TaskLane[] = ['active', 'waiting', 'stopped'];
 
 export function TaskPanel({
   activeLane,
   runtime,
-  onLaneChange,
   onPause,
   onResume,
   onRemove,
   t,
 }: TaskPanelProps) {
   return (
-    <section data-reveal className='mx-3 mt-2 rounded-xl border bg-(--m3-surface-container) p-2.5 shadow-(--m3-shadow-card)'>
-      <Tabs value={activeLane} onValueChange={(value) => onLaneChange(value as TaskLane)}>
-        <TabsList className='grid h-8 w-full grid-cols-3 bg-(--m3-surface-container-high)'>
-          {lanes.map((lane) => (
-            <TabsTrigger key={lane} value={lane}>
-              {t(`common.${lane}`)}
-              {' '}
-              <span className='ml-1 text-xs text-muted-foreground'>{runtime.tasks[lane].length}</span>
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        {lanes.map((lane) => (
-          <TaskList
-            key={lane}
-            value={lane}
-            tasks={runtime.tasks[lane]}
-            empty={t('popup.noTasks')}
-            onPause={onPause}
-            onResume={onResume}
-            onRemove={onRemove}
-          />
-        ))}
-      </Tabs>
+    <section data-reveal className='mx-3 mt-1 rounded-xl border bg-(--m3-surface-container) p-2.5 shadow-(--m3-shadow-card)'>
+      <TaskList
+        tone={activeLane}
+        tasks={runtime.tasks[activeLane]}
+        empty={t('popup.noTasks')}
+        onPause={onPause}
+        onResume={onResume}
+        onRemove={onRemove}
+      />
     </section>
   );
 }
 
 function TaskList({
-  value,
+  tone,
   tasks,
   empty,
   onPause,
   onResume,
   onRemove,
 }: {
-  value: string;
+  tone: TaskLane;
   tasks: RuntimeState['tasks']['active'];
   empty: string;
   onPause: (gid: string) => void;
@@ -70,14 +51,15 @@ function TaskList({
   onRemove: (gid: string, status: RuntimeState['tasks']['active'][number]['status']) => void;
 }) {
   return (
-    <TabsContent value={value} className='mt-2'>
+    <div className='min-h-[92px]'>
       {tasks.length
         ? (
-            <div className='max-h-[268px] space-y-2 overflow-y-auto pr-1'>
+            <div className='max-h-[268px] min-h-[92px] space-y-2 overflow-y-auto pr-1'>
               {tasks.map((task) => (
                 <TaskRow
                   key={task.gid}
                   task={task}
+                  tone={tone}
                   onPause={onPause}
                   onResume={onResume}
                   onRemove={onRemove}
@@ -90,6 +72,6 @@ function TaskList({
               {empty}
             </div>
           )}
-    </TabsContent>
+    </div>
   );
 }

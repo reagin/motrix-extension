@@ -29,7 +29,6 @@ export function DownloadSection({ compact, persistSettings, snapshot, t, updateS
         <SettingSwitch
           compact={compact}
           label={t('popup.interception')}
-          hint={snapshot.settings.enabled ? t('popup.captureOn') : t('popup.captureOff')}
           checked={snapshot.settings.enabled}
           onCheckedChange={(enabled) => updateSettings({ enabled })}
         />

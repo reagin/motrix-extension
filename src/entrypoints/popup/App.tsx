@@ -202,11 +202,16 @@ export default function App() {
           : visibleRuntime
             ? (
                 <div ref={revealRef}>
-                  <MetricsPanel runtime={visibleRuntime} captureEnabled={snapshot.settings.enabled} t={t} />
+                  <MetricsPanel
+                    activeLane={activeLane}
+                    runtime={visibleRuntime}
+                    captureEnabled={snapshot.settings.enabled}
+                    onLaneChange={setActiveLane}
+                    t={t}
+                  />
                   <TaskPanel
                     activeLane={activeLane}
                     runtime={visibleRuntime}
-                    onLaneChange={setActiveLane}
                     onPause={pauseTask}
                     onResume={resumeTask}
                     onRemove={removeTask}
