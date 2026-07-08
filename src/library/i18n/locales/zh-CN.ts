@@ -104,6 +104,7 @@ export const zhCN = {
     themeDark: '深色',
     themeDarkHint: '降低夜间眩光。',
     motion: '界面动效',
+    contextMenu: '右键菜单入口',
     density: '密度',
     densityComfortable: '舒适',
     densityComfortableHint: '更大的间距，适合逐项配置。',

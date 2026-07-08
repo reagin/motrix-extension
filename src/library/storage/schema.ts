@@ -43,6 +43,7 @@ export const UiPrefsSchema = z.object({
   theme: ThemeSchema.default('system'),
   density: DensitySchema.default('comfortable'),
   motion: z.boolean().default(true),
+  showContextMenu: z.boolean().default(true),
 });
 
 export const DiagnosticEventSchema = z.object({

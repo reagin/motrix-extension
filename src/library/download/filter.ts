@@ -72,7 +72,7 @@ function getProtocol(url: string): string {
   try {
     return new URL(url).protocol;
   } catch {
-    return '';
+    return /^([a-z][a-z0-9+.-]*):/i.exec(url)?.[1]?.toLowerCase().concat(':') ?? '';
   }
 }
 

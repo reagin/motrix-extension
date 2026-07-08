@@ -3,6 +3,7 @@ import type { RuntimeMessage, RuntimeResponse } from '@/library/messages';
 import { Aria2RpcClient } from '@/library/rpc';
 import { wakeMotrix } from '@/library/protocol/launcher';
 import { routeUrl } from '@/features/background/protocol/route-url';
+import { syncContextMenuVisibility } from '@/features/background/context-menu';
 import { buildPopupState, buildRuntimeState } from '@/features/background/runtime-state/build-runtime-state';
 import {
   appendDiagnostic,
@@ -36,8 +37,11 @@ export async function handleMessage(message: RuntimeMessage): Promise<RuntimeRes
         return { ok: true, snapshot: await updateSettings(message.patch) };
       case 'update-connection':
         return { ok: true, snapshot: await updateConnection(message.patch) };
-      case 'update-ui':
-        return { ok: true, snapshot: await updateUi(message.patch) };
+      case 'update-ui': {
+        const snapshot = await updateUi(message.patch);
+        await syncContextMenuVisibility(snapshot);
+        return { ok: true, snapshot };
+      }
       case 'save-site-rules':
         return { ok: true, snapshot: await saveSiteRules(message.siteRules) };
       case 'add-url':
@@ -70,9 +74,11 @@ export async function handleMessage(message: RuntimeMessage): Promise<RuntimeRes
         return { ok: true, snapshot: await clearDiagnostics() };
       case 'restore-defaults':
         await saveSnapshot(DEFAULT_STORAGE);
+        await syncContextMenuVisibility(DEFAULT_STORAGE);
         return { ok: true, snapshot: DEFAULT_STORAGE };
       case 'replace-snapshot':
         await saveSnapshot(message.snapshot);
+        await syncContextMenuVisibility(message.snapshot);
         return { ok: true, snapshot: message.snapshot };
       default:
         return { ok: false, code: 'unknown_message', message: 'Unknown message' };

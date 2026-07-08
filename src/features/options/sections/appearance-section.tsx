@@ -18,7 +18,18 @@ interface AppearanceSectionProps {
 export function AppearanceSection({ compact, persistUi, snapshot, t }: AppearanceSectionProps) {
   return (
     <Section title={t('options.appearance')} icon={Paintbrush} compact={compact}>
-      <SettingSwitch compact={compact} label={t('options.motion')} checked={snapshot.ui.motion} onCheckedChange={(motion) => void persistUi({ ...snapshot.ui, motion })} />
+      <SettingSwitch
+        compact={compact}
+        label={t('options.motion')}
+        checked={snapshot.ui.motion}
+        onCheckedChange={(motion) => void persistUi({ ...snapshot.ui, motion })}
+      />
+      <SettingSwitch
+        compact={compact}
+        label={t('options.contextMenu')}
+        checked={snapshot.ui.showContextMenu}
+        onCheckedChange={(showContextMenu) => void persistUi({ ...snapshot.ui, showContextMenu })}
+      />
       <div className='grid gap-(--options-gap)'>
         <div className='rounded-2xl border bg-(--m3-surface) p-(--options-field-pad)'>
           <div className='mb-2 text-[13px] font-medium'>{t('options.theme')}</div>

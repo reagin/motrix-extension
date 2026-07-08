@@ -25,6 +25,14 @@ export interface RuntimeState {
 
 export type RuntimeTaskLane = keyof RuntimeState['tasks'];
 
+export type ContextMenuTargetSource = 'link' | 'media' | 'selection' | 'page';
+
+export interface ContextMenuTarget {
+  url?: string;
+  pageUrl: string;
+  source: ContextMenuTargetSource;
+}
+
 export type RuntimeMessage
   = | { type: 'popup-state' }
     | { type: 'runtime-state' }
@@ -41,6 +49,7 @@ export type RuntimeMessage
     | { type: 'clear-tasks'; lane: RuntimeTaskLane; gids: string[] }
     | { type: 'wake-motrix' }
     | { type: 'content-protocol-click'; url: string; pageUrl: string }
+    | { type: 'resolve-context-menu-target' }
     | { type: 'append-diagnostic'; event: Omit<DiagnosticEvent, 'id' | 'timestamp'> }
     | { type: 'clear-diagnostics' }
     | { type: 'restore-defaults' }
@@ -53,6 +62,7 @@ export type RuntimeResponse
     runtime?: RuntimeState;
     snapshot?: StorageSnapshot;
     diagnostics?: DiagnosticEvent[];
+    contextMenuTarget?: ContextMenuTarget;
     result?: unknown;
   }
   | { ok: false; code: string; message: string };

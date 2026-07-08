@@ -2,8 +2,8 @@ import type { RuntimeMessage } from '@/library/messages';
 import type { DownloadItem } from '@/features/background/downloads/types';
 
 import { handleMessage } from '@/features/background/messaging/handle-message';
-import { ensureContextMenu, handleContextMenuClick } from '@/features/background/context-menu';
 import { handleDownloadCreated } from '@/features/background/downloads/handle-download-created';
+import { handleContextMenuClick, syncContextMenuVisibility } from '@/features/background/context-menu';
 import {
   captureRedirect,
   captureRequest,
@@ -13,11 +13,11 @@ import {
 
 export default defineBackground(() => {
   browser.runtime.onInstalled.addListener(() => {
-    void ensureContextMenu();
+    void syncContextMenuVisibility();
   });
 
   browser.runtime.onStartup.addListener(() => {
-    void ensureContextMenu();
+    void syncContextMenuVisibility();
   });
 
   browser.contextMenus.onClicked.addListener(handleContextMenuClick);

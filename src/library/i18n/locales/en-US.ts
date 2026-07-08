@@ -98,6 +98,7 @@ export const enUS = {
     themeDark: 'Dark',
     themeDarkHint: 'Reduces glare at night.',
     motion: 'Interface motion',
+    contextMenu: 'Context menu entry',
     density: 'Density',
     densityComfortable: 'Comfortable',
     densityComfortableHint: 'Roomier spacing for careful setup.',
