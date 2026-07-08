@@ -8,6 +8,7 @@ import { useI18n } from '@/hooks/use-i18n';
 import { useTheme } from '@/hooks/use-theme';
 import { sendRuntimeMessage } from '@/library/runtime';
 import { useAnimeReveal } from '@/hooks/use-anime-reveal';
+import { triggerMotrixProtocol } from '@/library/protocol/launcher';
 
 import type { TaskLane } from './types';
 
@@ -161,6 +162,19 @@ export default function App() {
     void runAction(t('popup.pauseAll'), () => sendRuntimeMessage({ type: 'pause-all', gids }));
   }, [runAction, runtime, setRuntime, t]);
 
+  const openMotrix = useCallback(() => {
+    const actionLabel = t('common.openMotrix');
+    try {
+      triggerMotrixProtocol();
+      void recordPopupDiagnostic('info', 'popup_action_completed', `Popup action completed: ${actionLabel}`, {
+        action: actionLabel,
+        launch: 'direct_protocol',
+      });
+    } catch {
+      void runAction(actionLabel, () => sendRuntimeMessage({ type: 'wake-motrix' }));
+    }
+  }, [recordPopupDiagnostic, runAction, t]);
+
   return (
     <div className='popup-shell w-[380px] overflow-hidden bg-(--m3-surface) text-foreground select-none'>
       <PopupHeader
@@ -205,7 +219,7 @@ export default function App() {
                     onClearAll={clearActiveLane}
                     onPauseAll={pauseActiveTasks}
                     onResumeAll={() => void runAction(t('popup.resumeAll'), () => sendRuntimeMessage({ type: 'resume-all' }))}
-                    onWakeMotrix={() => void runAction(t('common.openMotrix'), () => sendRuntimeMessage({ type: 'wake-motrix' }))}
+                    onWakeMotrix={openMotrix}
                     t={t}
                   />
                 </div>

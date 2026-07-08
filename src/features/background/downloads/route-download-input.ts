@@ -3,7 +3,7 @@ import type { StorageSnapshot } from '@/library/storage';
 
 import { appendDiagnostic } from '@/library/storage';
 import { Aria2RpcClient, RpcAuthError } from '@/library/rpc';
-import { openMotrixNewTask, wakeMotrix } from '@/library/protocol/launcher';
+import { openMotrixNewTask } from '@/library/protocol/launcher';
 
 export async function routeDownloadInput(
   input: AddDownloadInput,
@@ -34,31 +34,11 @@ export async function routeDownloadInput(
     if (error instanceof RpcAuthError || !snapshot.settings.autoLaunchApp) throw error;
   }
 
-  await wakeMotrix().catch(() => undefined);
-  await delay(1200);
-
-  try {
-    const retryClient = new Aria2RpcClient(snapshot.connection);
-    const result = await retryClient.addDownload(input);
-    await appendDiagnostic({
-      level: 'info',
-      code: 'download_routed_after_wake',
-      message: `Routed to Motrix after wake: ${taskUrl}`,
-      context: { ...context, gid: result.gid },
-    });
-  } catch (error) {
-    await appendDiagnostic({
-      level: 'warn',
-      code: 'protocol_fallback',
-      message: `Falling back to motrix:// for ${taskUrl}`,
-      context: { ...context, error: error instanceof Error ? error.message : String(error) },
-    });
-    await openMotrixNewTask(taskUrl);
-  }
-}
-
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    globalThis.setTimeout(resolve, ms);
+  await appendDiagnostic({
+    level: 'warn',
+    code: 'protocol_fallback',
+    message: `Falling back to motrix:// for ${taskUrl}`,
+    context,
   });
+  await openMotrixNewTask(taskUrl);
 }
