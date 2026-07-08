@@ -36,7 +36,7 @@ export type RuntimeMessage
     | { type: 'save-site-rules'; siteRules: SiteRule[] }
     | { type: 'add-url'; url: string }
     | { type: 'task-action'; action: 'pause' | 'resume' | 'remove'; gid: string; status?: Aria2TaskStatus }
-    | { type: 'pause-all' }
+    | { type: 'pause-all'; gids?: string[] }
     | { type: 'resume-all' }
     | { type: 'clear-tasks'; lane: RuntimeTaskLane; gids: string[] }
     | { type: 'wake-motrix' }

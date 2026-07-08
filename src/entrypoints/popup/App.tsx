@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { Aria2TaskStatus } from '@/library/rpc';
 import type { RuntimeState } from '@/library/messages';
@@ -20,13 +20,17 @@ import { ConnectingPanel, OfflinePanel } from './components/ConnectionPanel';
 
 const REFRESH_MS = 5000;
 
+type PopupView = 'initializing' | 'connecting' | 'offline' | 'main';
+
 export default function App() {
   const {
     snapshot,
     setSnapshot,
     runtime,
+    setRuntime,
     status,
     errorMessage,
+    isInitializing,
     refreshRuntime,
   } = usePopupRuntime();
   const hasSessionVerifiedConnectionRef = useRef(false);
@@ -35,16 +39,31 @@ export default function App() {
   const { t } = useI18n(snapshot.ui.locale);
   useTheme(snapshot.ui);
 
-  if (runtime?.connection.ok) hasSessionVerifiedConnectionRef.current = true;
+  const isRuntimeConnected = runtime?.connection.ok === true;
+  if (isRuntimeConnected) hasSessionVerifiedConnectionRef.current = true;
 
-  const hasVerifiedConnection = snapshot.connection.verifiedAt > 0 || hasSessionVerifiedConnectionRef.current;
-  const visibleRuntime = runtime ?? (hasVerifiedConnection ? buildFallbackRuntime(status, errorMessage) : null);
+  const hasStoredVerifiedConnection = snapshot.connection.verifiedAt > 0;
+  const canShowConnectedContent = isRuntimeConnected
+    || hasStoredVerifiedConnection
+    || hasSessionVerifiedConnectionRef.current;
+  const fallbackRuntime = useMemo(
+    () => (canShowConnectedContent ? buildFallbackRuntime(status, errorMessage) : null),
+    [canShowConnectedContent, errorMessage, status],
+  );
+  const visibleRuntime = runtime ?? fallbackRuntime;
   const activeLaneTaskCount = visibleRuntime?.tasks[activeLane].length ?? 0;
+  const popupView: PopupView = visibleRuntime
+    ? 'main'
+    : isInitializing
+      ? 'initializing'
+      : status === 'connecting'
+        ? 'connecting'
+        : 'offline';
 
-  const shouldRevealConnectedContent = snapshot.ui.motion && status === 'connected';
+  const shouldRevealConnectedContent = snapshot.ui.motion && isRuntimeConnected && !hasStoredVerifiedConnection;
   const revealRef = useAnimeReveal<HTMLDivElement>(
     shouldRevealConnectedContent,
-    status,
+    'connected-content',
   );
 
   const pollRuntime = useCallback(() => {
@@ -84,6 +103,7 @@ export default function App() {
       await recordPopupDiagnostic('info', 'popup_action_completed', `Popup action completed: ${label}`, { action: label });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
+      await refreshRuntime(true);
       await recordPopupDiagnostic('warn', 'popup_action_failed', `Popup action failed: ${label}`, { action: label, error: message });
     } finally {
       setBusy(false);
@@ -111,6 +131,36 @@ export default function App() {
     void runAction(t('popup.clearAll'), () => sendRuntimeMessage({ type: 'clear-tasks', lane: activeLane, gids }));
   }, [activeLane, runAction, runtime, t]);
 
+  const pauseActiveTasks = useCallback(() => {
+    const activeTasks = runtime?.tasks.active ?? [];
+    const gids = activeTasks.map((task) => task.gid);
+    if (!gids.length) return;
+
+    const gidSet = new Set(gids);
+    setRuntime((current) => {
+      if (!current) return current;
+      const pausedTasks = current.tasks.active
+        .filter((task) => gidSet.has(task.gid))
+        .map((task) => ({
+          ...task,
+          status: 'paused' as const,
+          downloadSpeed: '0',
+          uploadSpeed: '0',
+        }));
+      if (!pausedTasks.length) return current;
+      return {
+        ...current,
+        tasks: {
+          ...current.tasks,
+          active: current.tasks.active.filter((task) => !gidSet.has(task.gid)),
+          waiting: [...pausedTasks, ...current.tasks.waiting],
+        },
+      };
+    });
+
+    void runAction(t('popup.pauseAll'), () => sendRuntimeMessage({ type: 'pause-all', gids }));
+  }, [runAction, runtime, setRuntime, t]);
+
   return (
     <div className='popup-shell w-[380px] overflow-hidden bg-(--m3-surface) text-foreground select-none'>
       <PopupHeader
@@ -123,44 +173,44 @@ export default function App() {
         t={t}
       />
 
-      {!hasVerifiedConnection && status === 'connecting'
+      {popupView === 'connecting'
         ? (
             <ConnectingPanel port={snapshot.connection.port} t={t} />
           )
-        : !hasVerifiedConnection && (status === 'offline' || !visibleRuntime)
+        : popupView === 'offline'
+          ? (
+              <OfflinePanel
+                port={snapshot.connection.port}
+                errorMessage={errorMessage}
+                t={t}
+              />
+            )
+          : visibleRuntime
             ? (
-                <OfflinePanel
-                  port={snapshot.connection.port}
-                  errorMessage={errorMessage}
-                  t={t}
-                />
+                <div ref={revealRef}>
+                  <MetricsPanel runtime={visibleRuntime} captureEnabled={snapshot.settings.enabled} t={t} />
+                  <TaskPanel
+                    activeLane={activeLane}
+                    runtime={visibleRuntime}
+                    onLaneChange={setActiveLane}
+                    onPause={pauseTask}
+                    onResume={resumeTask}
+                    onRemove={removeTask}
+                    t={t}
+                  />
+                  <PopupActions
+                    activeLane={activeLane}
+                    busy={busy}
+                    taskCount={activeLaneTaskCount}
+                    onClearAll={clearActiveLane}
+                    onPauseAll={pauseActiveTasks}
+                    onResumeAll={() => void runAction(t('popup.resumeAll'), () => sendRuntimeMessage({ type: 'resume-all' }))}
+                    onWakeMotrix={() => void runAction(t('common.openMotrix'), () => sendRuntimeMessage({ type: 'wake-motrix' }))}
+                    t={t}
+                  />
+                </div>
               )
-            : visibleRuntime
-              ? (
-                  <div ref={revealRef}>
-                    <MetricsPanel runtime={visibleRuntime} captureEnabled={snapshot.settings.enabled} t={t} />
-                    <TaskPanel
-                      activeLane={activeLane}
-                      runtime={visibleRuntime}
-                      onLaneChange={setActiveLane}
-                      onPause={pauseTask}
-                      onResume={resumeTask}
-                      onRemove={removeTask}
-                      t={t}
-                    />
-                    <PopupActions
-                      activeLane={activeLane}
-                      busy={busy}
-                      taskCount={activeLaneTaskCount}
-                      onClearAll={clearActiveLane}
-                      onPauseAll={() => void runAction(t('popup.pauseAll'), () => sendRuntimeMessage({ type: 'pause-all' }))}
-                      onResumeAll={() => void runAction(t('popup.resumeAll'), () => sendRuntimeMessage({ type: 'resume-all' }))}
-                      onWakeMotrix={() => void runAction(t('common.openMotrix'), () => sendRuntimeMessage({ type: 'wake-motrix' }))}
-                      t={t}
-                    />
-                  </div>
-                )
-              : null}
+            : null}
     </div>
   );
 }

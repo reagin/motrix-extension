@@ -14,7 +14,8 @@ export function usePopupRuntime() {
   const [runtime, setRuntime] = useState<RuntimeState | null>(null);
   const [status, setStatus] = useState<PopupStatus>('connecting');
   const [errorMessage, setErrorMessage] = useState('');
-  const runtimeInFlightRef = useRef(false);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const runtimeInFlightRef = useRef<Promise<void> | null>(null);
 
   const refreshSnapshot = useCallback(async () => {
     const response = await sendRuntimeMessage({ type: 'settings-snapshot' });
@@ -23,9 +24,7 @@ export function usePopupRuntime() {
     }
   }, []);
 
-  const refreshRuntime = useCallback(async (quiet = false) => {
-    if (runtimeInFlightRef.current) return;
-    runtimeInFlightRef.current = true;
+  const runRuntimeRefresh = useCallback(async (quiet: boolean, holdConnectingCard: boolean) => {
     const startedAt = performance.now();
     let nextRuntime: RuntimeState | null = null;
     let nextStatus: PopupStatus = 'offline';
@@ -52,7 +51,7 @@ export function usePopupRuntime() {
       nextStatus = 'offline';
       nextErrorMessage = error instanceof Error ? error.message : String(error);
     } finally {
-      if (!quiet) {
+      if (holdConnectingCard) {
         const elapsed = performance.now() - startedAt;
         if (elapsed < CONNECTING_CARD_MIN_MS) {
           await delay(CONNECTING_CARD_MIN_MS - elapsed);
@@ -61,21 +60,76 @@ export function usePopupRuntime() {
       setRuntime(nextRuntime);
       setStatus(nextStatus);
       setErrorMessage(nextErrorMessage);
-      runtimeInFlightRef.current = false;
     }
   }, []);
 
+  const refreshRuntime = useCallback(async (quiet = false) => {
+    while (runtimeInFlightRef.current) {
+      await runtimeInFlightRef.current;
+      if (!quiet) return;
+    }
+
+    const shouldHoldConnectingCard = !quiet && snapshot.connection.verifiedAt <= 0;
+    const request = runRuntimeRefresh(quiet, shouldHoldConnectingCard);
+    runtimeInFlightRef.current = request;
+    try {
+      await request;
+    } finally {
+      if (runtimeInFlightRef.current === request) {
+        runtimeInFlightRef.current = null;
+      }
+    }
+  }, [runRuntimeRefresh, snapshot.connection.verifiedAt]);
+
+  const refreshInitialState = useCallback(async () => {
+    if (runtimeInFlightRef.current) return;
+
+    setIsInitializing(true);
+    setStatus('connecting');
+    setErrorMessage('');
+
+    const request = (async () => {
+      try {
+        const response = await sendRuntimeMessage({ type: 'settings-snapshot' });
+        if (response.ok && response.snapshot) {
+          setSnapshot(response.snapshot);
+          setIsInitializing(false);
+          await runRuntimeRefresh(false, response.snapshot.connection.verifiedAt <= 0);
+          return;
+        }
+
+        throw new Error(response.ok ? 'Unable to read settings snapshot' : response.message);
+      } catch (error) {
+        const nextErrorMessage = error instanceof Error ? error.message : String(error);
+        setRuntime(null);
+        setStatus('offline');
+        setErrorMessage(nextErrorMessage);
+        setIsInitializing(false);
+      }
+    })();
+
+    runtimeInFlightRef.current = request;
+    try {
+      await request;
+    } finally {
+      if (runtimeInFlightRef.current === request) {
+        runtimeInFlightRef.current = null;
+      }
+    }
+  }, [runRuntimeRefresh]);
+
   useEffect(() => {
-    void refreshSnapshot();
-    void refreshRuntime(false);
-  }, [refreshRuntime, refreshSnapshot]);
+    void refreshInitialState();
+  }, [refreshInitialState]);
 
   return {
     snapshot,
     setSnapshot,
     runtime,
+    setRuntime,
     status,
     errorMessage,
+    isInitializing,
     refreshSnapshot,
     refreshRuntime,
   };

@@ -27,6 +27,12 @@ export async function clearTasks(lane: RuntimeTaskLane, gids: string[]): Promise
   });
 }
 
+export async function pauseTasks(gids: string[]): Promise<void> {
+  await withClient(async (client) => {
+    await Promise.all(gids.map((gid) => client.pause(gid)));
+  });
+}
+
 function isDownloadResultStatus(status?: Aria2TaskStatus): boolean {
   return status === 'complete' || status === 'error' || status === 'removed';
 }

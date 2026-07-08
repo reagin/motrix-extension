@@ -16,7 +16,7 @@ import {
   updateUi,
 } from '@/library/storage';
 
-import { clearTasks, performTaskAction, withClient } from './task-actions';
+import { clearTasks, pauseTasks, performTaskAction, withClient } from './task-actions';
 
 export async function handleMessage(message: RuntimeMessage): Promise<RuntimeResponse> {
   try {
@@ -46,7 +46,11 @@ export async function handleMessage(message: RuntimeMessage): Promise<RuntimeRes
         await performTaskAction(message.action, message.gid, message.status);
         return { ok: true };
       case 'pause-all':
-        await withClient((client) => client.pauseAll());
+        if (message.gids?.length) {
+          await pauseTasks(message.gids);
+        } else {
+          await withClient((client) => client.pauseAll());
+        }
         return { ok: true };
       case 'resume-all':
         await withClient((client) => client.resumeAll());

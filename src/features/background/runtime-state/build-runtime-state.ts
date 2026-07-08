@@ -8,9 +8,10 @@ const POPUP_RPC_TIMEOUT_MS = 1200;
 
 export async function buildPopupState(): Promise<PopupState> {
   const snapshot = await loadSnapshot();
+  const runtime = await buildRuntimeState(snapshot);
   return {
-    snapshot,
-    runtime: await buildRuntimeState(snapshot),
+    snapshot: runtime.connection.ok && !snapshot.connection.verifiedAt ? await loadSnapshot() : snapshot,
+    runtime,
   };
 }
 
